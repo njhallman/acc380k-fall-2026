@@ -36,9 +36,9 @@ No textbook is required, but budget up to $200 in total for software and AI tool
 - **[Canvas](https://utexas.instructure.com/courses/1450201):** Canvas is the official hub for announcements, requirements, deadlines, submissions, feedback, and grades. Check it before class; if another platform conflicts, Canvas controls.
 - **Google Colab:** Colab is our shared Python notebook environment; no local installation is required. Start with the free tier, but its limits vary. If later case work needs a paid plan, I will give advance notice and check for student or university access first.
 - **Course data files:** Data will come through direct links. Some files require a Colab Secrets token, provided when needed. Do not share restricted files or put them in public repositories.
-- **[GitHub](https://github.com/njhallman/acc380k-fall-2026):** The public course repo holds selected code and materials, including the [released notebook index](notebooks/README.md); Case 2 teams will use private repos. No prior Git or GitHub experience, paid plan, or public student repo is required.
+- **[GitHub](https://github.com/njhallman/acc380k-fall-2026):** The public course repo holds selected code and materials, including the [released notebook index](notebooks/README.md) and [quiz review archive](quiz-review/README.md); Case 2 teams will use private repos. No prior Git or GitHub experience, paid plan, or public student repo is required.
 - **Claude Code and other AI tools:** We expect to use Claude Code and may use other AI tools, especially for the cases. Buy nothing now; I will give advance notice if paid access is necessary. The AI Policy below controls use.
-- **Poll Everywhere:** Poll Everywhere will support live predictions, checks, debugging, and occasional competitions; no account is required.
+- **Poll Everywhere:** Poll Everywhere supports ungraded in-class retrieval competitions; no account is required. Each question set is added to the quiz review archive after both sections have seen it.
 
 ## Course Description and Approach
 

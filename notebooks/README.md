@@ -2,6 +2,8 @@
 
 At the beginning of class, start from **Starter** or from your own as-yet unedited copy. Nick edits the appropriate section notebook live and saves it at the end of class. The section notebooks may differ because of pacing, questions, and spontaneous examples; they are records of class, not additional assignments. Before a section has used a notebook, its copy may be identical to Starter.
 
+Past in-class quiz questions and explanations are in the [quiz review archive](../quiz-review/README.md).
+
 | Notebook | Starter | 12:30 Section | 2:00 Section |
 |---|---|---|---|
 | Notebook 1 | [![Open Starter in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/starter.ipynb) | [![Open 12:30 Section in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/12-30-section.ipynb) | [![Open 2:00 Section in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/2-00-section.ipynb) |
