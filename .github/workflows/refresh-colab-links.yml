@@ -6,6 +6,8 @@ on:
       - main
     paths:
       - "notebooks/**/*.ipynb"
+      - "homework/homework-*/starter.ipynb"
+      - "homework/README.md"
   workflow_dispatch:
 
 permissions:
@@ -33,50 +35,59 @@ jobs:
           import re
           import subprocess
 
-          index_path = Path("notebooks/README.md")
-          index_text = index_path.read_text()
           url_prefix = (
               "https://colab.research.google.com/github/"
               "njhallman/acc380k-fall-2026/blob/"
           )
 
+          def refresh_links(index_path, artifact_paths):
+              index_text = index_path.read_text()
+
+              for artifact_path in artifact_paths:
+                  revision = subprocess.check_output(
+                      ["git", "log", "-1", "--format=%H", "--", str(artifact_path)],
+                      text=True,
+                  ).strip()
+                  if not re.fullmatch(r"[0-9a-f]{40}", revision):
+                      raise SystemExit(f"No commit was found for {artifact_path}.")
+
+                  link_pattern = re.compile(
+                      re.escape(url_prefix)
+                      + r"[0-9a-f]{40}/"
+                      + re.escape(artifact_path.as_posix())
+                  )
+                  replacement = f"{url_prefix}{revision}/{artifact_path.as_posix()}"
+                  index_text, replacement_count = link_pattern.subn(replacement, index_text)
+                  if replacement_count != 1:
+                      raise SystemExit(
+                          f"Expected one Colab link for {artifact_path}; "
+                          f"found {replacement_count}."
+                      )
+
+              index_path.write_text(index_text)
+
           notebook_paths = sorted(Path("notebooks").glob("notebook-*/*.ipynb"))
           if not notebook_paths:
               raise SystemExit("No public notebooks were found.")
+          refresh_links(Path("notebooks/README.md"), notebook_paths)
 
-          for notebook_path in notebook_paths:
-              revision = subprocess.check_output(
-                  ["git", "log", "-1", "--format=%H", "--", str(notebook_path)],
-                  text=True,
-              ).strip()
-              if not re.fullmatch(r"[0-9a-f]{40}", revision):
-                  raise SystemExit(f"No commit was found for {notebook_path}.")
-
-              link_pattern = re.compile(
-                  re.escape(url_prefix)
-                  + r"[0-9a-f]{40}/"
-                  + re.escape(notebook_path.as_posix())
-              )
-              replacement = f"{url_prefix}{revision}/{notebook_path.as_posix()}"
-              index_text, replacement_count = link_pattern.subn(replacement, index_text)
-              if replacement_count != 1:
-                  raise SystemExit(
-                      f"Expected one Colab link for {notebook_path}; "
-                      f"found {replacement_count}."
-                  )
-
-          index_path.write_text(index_text)
+          homework_index_path = Path("homework/README.md")
+          if homework_index_path.exists():
+              homework_paths = sorted(Path("homework").glob("homework-*/starter.ipynb"))
+              if homework_paths:
+                  refresh_links(homework_index_path, homework_paths)
           PY
 
-      - name: Commit an updated notebook index when needed
+      - name: Commit updated indexes when needed
         shell: bash
         run: |
-          if git diff --quiet -- notebooks/README.md; then
+          if git diff --quiet -- notebooks/README.md homework/README.md; then
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add notebooks/README.md
+          [ -f homework/README.md ] && git add homework/README.md
           git commit -m "Refresh Colab links"
           git push origin main

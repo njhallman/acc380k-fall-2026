@@ -26,7 +26,7 @@ layout: null
     <script>
       const params = new URLSearchParams(window.location.search);
       const path = params.get("path") || "";
-      const allowedPath = /^notebooks\/notebook-\d+\/(starter|12-30-section|2-00-section)\.ipynb$/;
+      const allowedPath = /^(notebooks\/notebook-\d+\/(starter|12-30-section|2-00-section)|homework\/homework-\d+\/starter)\.ipynb$/;
       const commit = "{{ site.github.build_revision }}";
 
       if (!allowedPath.test(path)) {
