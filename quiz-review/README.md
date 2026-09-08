@@ -6,5 +6,6 @@ Try each question before opening its answer and explanation. These pages are stu
 
 - [Notebook 1 — Jupyter notebooks and Colab](notebook-01/README.md)
 - [Notebook 2 — values, types, and Boolean expressions](notebook-02/README.md)
+- [Notebook 3 — functions, returns, and local names](notebook-03/README.md)
 
 The [course notebook index](../notebooks/README.md) has the Starter and section copies of each notebook.
