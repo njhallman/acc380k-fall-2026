@@ -32,10 +32,22 @@ layout: null
       if (!allowedPath.test(path)) {
         document.querySelector("#status").textContent = "This notebook link is not valid.";
       } else {
-        const target = new URL(
-          `https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/${commit}/${path}`
+        const openAt = (rev) => window.location.replace(
+          `https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/${rev}/${path}`
         );
-        window.location.replace(target.toString());
+        // Ask GitHub for the newest commit of this file at click time, so a
+        // notebook saved minutes ago opens even if this page is cached or the
+        // Pages rebuild has not finished. Fall back to the build revision.
+        const api = `https://api.github.com/repos/njhallman/acc380k-fall-2026/commits?sha=main&per_page=1&path=${encodeURIComponent(path)}`;
+        const timer = new AbortController();
+        setTimeout(() => timer.abort(), 4000);
+        fetch(api, { cache: "no-store", signal: timer.signal })
+          .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
+          .then((data) => {
+            const sha = data && data[0] && data[0].sha;
+            openAt(/^[0-9a-f]{40}$/.test(sha || "") ? sha : commit);
+          })
+          .catch(() => openAt(commit));
       }
     </script>
     <noscript>JavaScript is required to request the latest notebook version.</noscript>
