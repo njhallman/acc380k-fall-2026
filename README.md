@@ -13,7 +13,7 @@ This syllabus is maintained in the course repository so that changes can be trac
 
 **Teaching Assistant:** Joanna G. Smith — [joanna.smith@utexas.edu](mailto:joanna.smith@utexas.edu)<br>
 Joanna’s office hours are by appointment and can be booked directly on [Google Calendar](https://calendar.app.google/5a2iouwypKBxqXvM6). If none of the posted times work with your class schedule, feel free to reach out.<br>
-In preparation for the exam on October 22nd, Joanna will be hosting open office hours on Wednesday, Oct 21 from 3:30–6:30pm in the CBA Atrium. No appointment will be needed.
+In preparation for the exam on October 22nd, Joanna will be hosting open office hours on Wednesday, Oct 21 from 3:30–6:30pm in GSB 5.144. No appointment will be needed.
 
 ## Course Meeting Details
 
