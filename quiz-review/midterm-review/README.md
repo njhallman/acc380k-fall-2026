@@ -2,7 +2,7 @@
 
 # Midterm review: practice questions
 
-These 16 practice questions were prepared for the Oct 21 Zoom study session. They review the kinds of code-tracing skills the midterm asks for, but none of them are exam questions. Try each one before checking the answer key at the bottom. Treat each code block as a separate, fresh run in a notebook cell; the pandas questions start with `import pandas as pd`.
+These questions revisit types, string slicing and methods, lists and dictionaries, loops, functions that return two values, and DataFrame work with `.loc`, boolean masks, `groupby`, and new columns. None of them are exam questions. Try each one before opening the answer and explanation. Treat each code block as a separate, fresh run.
 
 ## 1. Python basics: types
 
@@ -14,11 +14,20 @@ y = int(x) / 2
 type(y)
 ```
 
-- **A.** `float`
-- **B.** `bool`
-- **C.** `TypeError`
-- **D.** `str`
-- **E.** `int`
+- `float`
+- `bool`
+- `TypeError`
+- `str`
+- `int`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `float`
+
+`"5" + "3"` joins two strings, so `x` is `"53"`, not `8`. `int("53") / 2` uses `/`, which always produces a float, so `y` is `26.5`. A bare `type(y)` on the last line of a cell displays `float`.
+
+</details>
 
 ## 2. Strings: slicing
 
@@ -29,11 +38,20 @@ s = "FY2025-Q3"
 print(s[2:6], s[-2:])
 ```
 
-- **A.** `Y202 Q3`
-- **B.** `2025- -Q3`
-- **C.** `2025 Q3`
-- **D.** `2025 3`
-- **E.** `FY20 Q3`
+- `Y202 Q3`
+- `2025- -Q3`
+- `2025 Q3`
+- `2025 3`
+- `FY20 Q3`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `2025 Q3`
+
+Slicing `s[2:6]` starts at position 2 and stops before position 6, which gives `"2025"`. `s[-2:]` takes the last two characters, `"Q3"`. `print` separates the two values with a space.
+
+</details>
 
 ## 3. Strings: methods
 
@@ -44,11 +62,20 @@ t = "  Net Income  "
 print(t.strip().lower().replace(" ", "_"))
 ```
 
-- **A.** `net_income`
-- **B.** `net income`
-- **C.** `__net_income__`
-- **D.** `Net_Income`
-- **E.** `_net_income_`
+- `net_income`
+- `net income`
+- `__net_income__`
+- `Net_Income`
+- `_net_income_`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `net_income`
+
+`strip()` runs first and removes the spaces on both ends, leaving `"Net Income"`. `lower()` gives `"net income"`, and `replace(" ", "_")` changes only the one remaining inner space.
+
+</details>
 
 ## 4. Strings: find
 
@@ -59,11 +86,20 @@ memo = "fee risk"
 print(memo.find("risk"), memo.find("tax"))
 ```
 
-- **A.** `5 -1`
-- **B.** `4 -1`
-- **C.** `4 ValueError`
-- **D.** `4 0`
-- **E.** `5 0`
+- `5 -1`
+- `4 -1`
+- `4 ValueError`
+- `4 0`
+- `5 0`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `4 -1`
+
+Positions count from 0: `f` is 0, `e` is 1, `e` is 2, the space is 3, so `"risk"` starts at 4. `.find` returns `-1` when the phrase is not there, rather than raising an error.
+
+</details>
 
 ## 5. Lists: append and item assignment
 
@@ -76,11 +112,20 @@ accts.append("Prepaid")
 print(accts[1], accts[-1], len(accts))
 ```
 
-- **A.** `Cash Prepaid 4`
-- **B.** `Receivables Prepaid 4`
-- **C.** `Receivables Inventory 3`
-- **D.** `AR Prepaid 4`
-- **E.** `Receivables Prepaid 3`
+- `Cash Prepaid 4`
+- `Receivables Prepaid 4`
+- `Receivables Inventory 3`
+- `AR Prepaid 4`
+- `Receivables Prepaid 3`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `Receivables Prepaid 4`
+
+`accts[1] = "Receivables"` replaces `"AR"` in place. `append` adds `"Prepaid"` at the end, so `accts[-1]` is `"Prepaid"`. The list now has 4 items.
+
+</details>
 
 ## 6. Dictionaries: update and add keys
 
@@ -93,11 +138,20 @@ bal["AP"] = 75
 print("AP" in bal, bal["AR"], len(bal))
 ```
 
-- **A.** `False 250 3`
-- **B.** `True 250 2`
-- **C.** `True 250 3`
-- **D.** `KeyError: 'AP'`
-- **E.** `True 200 3`
+- `False 250 3`
+- `True 250 2`
+- `True 250 3`
+- `KeyError: 'AP'`
+- `True 200 3`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `True 250 3`
+
+Assigning to an existing key replaces its value, so `"AR"` becomes `250`. Assigning to a new key adds it, so `"AP"` is now in `bal`, and `bal` has 3 keys.
+
+</details>
 
 ## 7. Loops: for with continue
 
@@ -112,11 +166,20 @@ for a in [120, -30, 80, -10, 50]:
 print(total)
 ```
 
-- **A.** `210`
-- **B.** `290`
-- **C.** `120`
-- **D.** `40`
-- **E.** `250`
+- `210`
+- `290`
+- `120`
+- `40`
+- `250`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `250`
+
+`continue` skips the rest of the loop body for the negative amounts, so they are never added. The total is `120 + 80 + 50`, which is `250`.
+
+</details>
 
 ## 8. Loops: while
 
@@ -131,11 +194,20 @@ while cash < 1300:
 print(years)
 ```
 
-- **A.** `30`
-- **B.** `The loop never stops.`
-- **C.** `2`
-- **D.** `4`
-- **E.** `3`
+- `30`
+- `The loop never stops.`
+- `2`
+- `4`
+- `3`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `3`
+
+After each pass, `cash` grows to 1100, then 1210, then 1331. The condition `cash < 1300` is checked before each pass, and it is first false after the third year, so the loop stops with `years` equal to `3`.
+
+</details>
 
 ## 9. Functions: returning two values
 
@@ -149,11 +221,20 @@ def split(total, share):
 type(split(10, 0.5))
 ```
 
-- **A.** `float`
-- **B.** `tuple`
-- **C.** `str`
-- **D.** `list`
-- **E.** `int`
+- `float`
+- `tuple`
+- `str`
+- `list`
+- `int`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `tuple`
+
+`return mine, total - mine` sends back both values together as one tuple, `(5.0, 5.0)`. A bare `type(...)` on the last line of a cell displays `tuple`.
+
+</details>
 
 ## 10. pandas: boolean masks
 
@@ -167,11 +248,20 @@ df = pd.DataFrame({"dept": ["Tax","Audit","Tax","Audit","Tax"],
 print(len(df.loc[(df["dept"] == "Tax") & (df["hours"] > 3)]))
 ```
 
-- **A.** `3`
-- **B.** `1`
-- **C.** `2`
-- **D.** `5`
-- **E.** `ValueError`
+- `3`
+- `1`
+- `2`
+- `5`
+- `ValueError`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `2`
+
+The mask keeps rows where both conditions are true. The Tax rows have hours 10, 6, and 2, and only 10 and 6 are above 3, so two rows remain.
+
+</details>
 
 ## 11. pandas: groupby mean vs sum
 
@@ -186,11 +276,20 @@ by_dept = df[["dept", "hours"]].groupby("dept").mean()
 print(by_dept.loc["Tax", "hours"])
 ```
 
-- **A.** `18`
-- **B.** `6.0`
-- **C.** `5.0`
-- **D.** `6`
-- **E.** `KeyError: 'Tax'`
+- `18`
+- `6.0`
+- `5.0`
+- `6`
+- `KeyError: 'Tax'`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `6.0`
+
+`groupby("dept").mean()` gives one row per department, with the average hours. Tax averages `(10 + 6 + 2) / 3`, and `mean` returns a float, so the result is `6.0`.
+
+</details>
 
 ## 12. pandas: mask and column list in .loc
 
@@ -205,11 +304,20 @@ big = df.loc[df["rev"] > 4, ["firm"]]
 print(big.shape)
 ```
 
-- **A.** `(4, 1)`
-- **B.** `(2, 1)`
-- **C.** `(3, 1)`
-- **D.** `(3, 2)`
-- **E.** `(1, 3)`
+- `(4, 1)`
+- `(2, 1)`
+- `(3, 1)`
+- `(3, 2)`
+- `(1, 3)`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `(3, 1)`
+
+The mask keeps rows where `rev` is above 4: A, B, and D. The column list `["firm"]` keeps only one column, so the shape is `(3, 1)`.
+
+</details>
 
 ## 13. pandas: groupby sum
 
@@ -224,11 +332,20 @@ tot = df.groupby("region")["visits"].sum()
 print(tot.loc["TX"], tot.loc["CA"])
 ```
 
-- **A.** `3 5`
-- **B.** `13 13`
-- **C.** `7 6`
-- **D.** `3.5 3.0`
-- **E.** `4 1`
+- `3 5`
+- `13 13`
+- `7 6`
+- `3.5 3.0`
+- `4 1`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `7 6`
+
+`groupby("region")["visits"].sum()` adds the visits within each region. TX is `3 + 4 = 7` and CA is `5 + 1 = 6`, and `.loc` looks each one up by its label.
+
+</details>
 
 ## 14. pandas: groupby mean and sort_values
 
@@ -244,11 +361,20 @@ avg = avg.sort_values("visits")
 print(avg.reset_index().loc[0, "region"])
 ```
 
-- **A.** `CA`
-- **B.** `0`
-- **C.** `3.0`
-- **D.** `KeyError: 0`
-- **E.** `TX`
+- `CA`
+- `0`
+- `3.0`
+- `KeyError: 0`
+- `TX`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `CA`
+
+The averages are 3.0 for CA and 3.5 for TX. `sort_values` puts the smallest first, so after `reset_index` the region in row 0 is `CA`.
+
+</details>
 
 ## 15. pandas: new column
 
@@ -263,11 +389,20 @@ df["flag"] = "review"
 print(df.shape, df.loc[2, "flag"])
 ```
 
-- **A.** `(4, 3) flag`
-- **B.** `(4, 3) review`
-- **C.** `(4, 2) review`
-- **D.** `(3, 4) review`
-- **E.** `(5, 3) review`
+- `(4, 3) flag`
+- `(4, 3) review`
+- `(4, 2) review`
+- `(3, 4) review`
+- `(5, 3) review`
+
+<details>
+<summary>Answer and explanation</summary>
+
+**Answer:** `(4, 3) review`
+
+Assigning a single value to a new column fills every row with that value. The DataFrame still has 4 rows but now has 3 columns, and row 2 holds `"review"`.
+
+</details>
 
 ## 16. pandas: groupby on two columns
 
@@ -282,42 +417,17 @@ g = df.groupby(["year", "qtr"])["rev"].sum().reset_index()
 print(len(g), g.loc[2, "rev"])
 ```
 
-- **A.** `5 4`
-- **B.** `2 4`
-- **C.** `3 1`
-- **D.** `3 5`
-- **E.** `3 4`
+- `5 4`
+- `2 4`
+- `3 1`
+- `3 5`
+- `3 4`
 
-## Answer key
+<details>
+<summary>Answer and explanation</summary>
 
-**1. A** (`float`). "5" + "3" joins text to "53"; int("53") / 2 is true division, giving 26.5, a float. A bare type(y) on the last line of a cell displays float.
+**Answer:** `3 4`
 
-**2. C** (`2025 Q3`). Index 2 up to (not including) 6 is "2025"; [-2:] is the last two characters.
+Grouping on two columns makes one group per (year, qtr) pair: (2025, 1), (2026, 1), and (2026, 2). That is 3 rows, and row 2's total is `3 + 1 = 4`.
 
-**3. A** (`net_income`). strip() removes the outer spaces first, so only the inner space becomes "_".
-
-**4. B** (`4 -1`). .find returns where the first match starts, counting from 0, so "risk" starts at 4 (f=0, e=1, e=2, space=3); a missing phrase returns -1.
-
-**5. B** (`Receivables Prepaid 4`). Assigning to position 1 replaces AR; append adds Prepaid at the end, so [-1] is Prepaid and there are 4 items.
-
-**6. C** (`True 250 3`). Assigning to an existing key replaces its value (AR becomes 250); assigning to a new key adds it, so AP is in bal and there are 3 keys.
-
-**7. E** (`250`). continue skips the negatives; 120 + 80 + 50 = 250.
-
-**8. E** (`3`). 1100, 1210, 1331: the third year is the first at or above 1300.
-
-**9. B** (`tuple`). return mine, total - mine sends back both values together as a tuple, (5.0, 5.0), so the cell displays tuple.
-
-**10. C** (`2`). Tax rows have hours 10, 6, 2; two of them exceed 3.
-
-**11. B** (`6.0`). Tax hours average (10 + 6 + 2) / 3 = 6.0; mean returns a float.
-
-**12. C** (`(3, 1)`). rev above 4 keeps A, B, D (3 rows); the column list keeps only firm (1 column).
-
-**13. C** (`7 6`). TX visits 3 + 4 = 7; CA visits 5 + 1 = 6.
-
-**14. A** (`CA`). Means: CA 3.0, TX 3.5. sort_values sorts smallest first, so after reset_index row 0 is CA.
-
-**15. B** (`(4, 3) review`). Assigning a new column adds a third column with the same value in every row; there are still 4 rows.
-
-**16. E** (`3 4`). Groups are (2025, 1)=10, (2026, 1)=5, (2026, 2)=3+1=4, so 3 rows and row 2 has rev 4.
+</details>
