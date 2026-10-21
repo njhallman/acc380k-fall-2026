@@ -10,5 +10,6 @@ Try each question before opening its answer and explanation. These pages are stu
 - [Notebook 4 — decisions and boundary tests](notebook-04/README.md)
 - [Notebook 5 — strings, lists, dictionaries, and tuples](notebook-05/README.md)
 - [Notebook 6 — loops and accumulated results](notebook-06/README.md)
+- [Midterm review — 16 practice questions from the Oct 21 study session](midterm-review/README.md)
 
 The [course notebook index](../notebooks/README.md) has the Starter and section copies of each notebook.
