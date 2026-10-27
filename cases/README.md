@@ -6,4 +6,4 @@ Open the case below in Colab. Choose **File → Save a copy in Drive** and compl
 
 | Assignment | Topic | Open in Colab |
 |---|---|---|
-| Case 1 | Does the foot traffic support the revenue? Texas Roadhouse, 2017–2026 | [![Open Case 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/bfbf4a9ca1a1905ad873f30d2d181c7353b20a9e/cases/case-01/starter.ipynb) |
+| Case 1 | Does the foot traffic support the revenue? Texas Roadhouse, 2017–2026 | [![Open Case 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/41ecdb0b1dcbe6062bee9a588a8e90dc40de955c/cases/case-01/starter.ipynb) |
