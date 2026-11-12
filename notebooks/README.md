@@ -4,6 +4,8 @@ At the beginning of class, start from **Starter** or from your own as-yet unedit
 
 Past in-class quiz questions and explanations are in the [quiz review archive](../quiz-review/README.md).
 
+The random forests lecture deck, **Growing a Forest by Hand**, opens in your browser: [open the deck](https://njhallman.github.io/acc380k-fall-2026/random-forests.html). Use the arrow keys or click to step through it, and press F for full screen.
+
 | Notebook | Starter | 12:30 Section | 2:00 Section |
 |---|---|---|---|
 | Notebook 1 | [![Open Starter in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/starter.ipynb) | [![Open 12:30 Section in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/12-30-section.ipynb) | [![Open 2:00 Section in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/18aacf9344f716ad44ba3a4a2939eb82e7eca24a/notebooks/notebook-01/2-00-section.ipynb) |
