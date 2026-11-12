@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>html,body{margin:0}</style>
+<meta charset="utf-8">
+<title>Growing a Forest by Hand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a fixed 1600×900 stage scaled to fit; audit-workpaper ground, two outcome inks (orange = A, blue = not A) */
+:root{
+  --paper:#f4f5f0; --paper-2:#e9ebe3; --rule:#d3d7cc; --ink:#1c2633; --ink-2:#56616e;
+  --a:#bf5700; --a-soft:#f2c9a6; --n:#2a5fa3; --n-soft:#bcd0ea; --q:#8a929c; --mix:#3a4654;
+  --hi:#fff3c4; --chip-ink:#ffffff; --panel:#ffffff;
+  --f-display:"Newsreader", Georgia, "Times New Roman", serif;
+  --f-body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#131921; --paper-2:#1b232d; --rule:#2c3643; --ink:#e8ecef; --ink-2:#9aa6b2;
+  --a:#ec8a3e; --a-soft:#6a3a17; --n:#6ea3e8; --n-soft:#20395c; --q:#7d8894; --mix:#c9d2db;
+  --hi:#4a3f12; --chip-ink:#10161d; --panel:#1a222c; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#131921; --paper-2:#1b232d; --rule:#2c3643; --ink:#e8ecef; --ink-2:#9aa6b2;
+  --a:#ec8a3e; --a-soft:#6a3a17; --n:#6ea3e8; --n-soft:#20395c; --q:#7d8894; --mix:#c9d2db;
+  --hi:#4a3f12; --chip-ink:#10161d; --panel:#1a222c; color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);overflow:hidden;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));box-sizing:border-box}
+#view{position:relative;height:100%;width:100%}
+#stage{position:absolute;left:50%;top:calc(50% - 26px);width:1600px;height:900px;transform-origin:50% 50%;
+  background:var(--paper);
+  background-image:linear-gradient(var(--rule) 1px, transparent 1px);background-size:100% 36px;background-position:0 18px;}
+#stage::before{content:"";position:absolute;left:72px;top:0;bottom:0;width:1px;background:var(--a);opacity:.35}
+.slide{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .45s ease, visibility .45s}
+.slide.on{opacity:1;visibility:visible}
+.abs{position:absolute}
+.h{position:absolute;left:104px;top:56px;width:1400px;margin:0;font-family:var(--f-display);font-weight:400;font-size:58px;line-height:1.1;letter-spacing:-.01em;text-wrap:balance}
+.eyebrow{position:absolute;left:104px;top:30px;font:500 15px var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--a)}
+.cap{position:absolute;left:104px;top:790px;width:1400px;margin:0;font-size:28px;line-height:1.35;color:var(--ink)}
+.cap b{font-weight:600}
+.rv{opacity:0;transition:opacity .5s ease, translate .5s ease;translate:0 10px}
+.rv.shown{opacity:1;translate:0 0}
+.muted{color:var(--ink-2)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.ta{color:var(--a);font-weight:600}.tn{color:var(--n);font-weight:600}
+
+/* chips = students */
+.chip{position:absolute;left:0;top:0;width:68px;height:68px;margin:-34px 0 0 -34px;border-radius:50%;
+  display:grid;place-items:center;font:600 14px var(--f-body);letter-spacing:.01em;color:var(--chip-ink);
+  transition:transform .85s cubic-bezier(.2,.75,.2,1), opacity .5s, background-color .4s, box-shadow .3s, filter .4s;
+  box-shadow:0 1px 0 rgba(0,0,0,.12)}
+.chip.ca{background:var(--a)}.chip.cn{background:var(--n)}.chip.cq{background:var(--q);color:var(--chip-ink)}
+.chip.sm{width:30px;height:30px;margin:-15px 0 0 -15px;font-size:0}
+.chip.dim{opacity:.22}
+.chip.ring{box-shadow:0 0 0 5px var(--paper),0 0 0 9px var(--ink)}
+.chip .tick{position:absolute;right:-10px;top:-12px;font:600 22px var(--f-display);color:var(--ink);opacity:0;transition:opacity .3s}
+.chip.ticked .tick{opacity:1}
+.mv{transition:transform .85s cubic-bezier(.2,.75,.2,1), opacity .5s, left .7s, top .7s, width .7s, height .7s}
+
+.qbox{position:absolute;transform:translate(-50%,-50%);padding:14px 26px;border:2px solid var(--ink);border-radius:10px;background:var(--panel);
+  font:500 28px var(--f-body);white-space:nowrap;transition:opacity .5s, border-color .3s, background-color .3s, left .8s, top .8s}
+.bin{position:absolute;transform:translate(-50%,-50%);border:2px dashed var(--rule);border-radius:16px;transition:opacity .5s, border-color .4s, background-color .4s}
+.bin.pure{border-style:solid;border-color:var(--ink)}
+.lbl{position:absolute;transform:translate(-50%,-50%);font:600 22px var(--f-body);white-space:nowrap;transition:opacity .5s}
+.cnt{position:absolute;transform:translate(-50%,0);font:500 22px var(--f-mono);white-space:nowrap;color:var(--ink-2);transition:opacity .4s}
+svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+svg .edge{stroke:var(--ink-2);stroke-width:2.5;fill:none;transition:stroke .3s, stroke-width .3s, opacity .5s}
+svg .edge.hot{stroke:var(--a);stroke-width:5}
+svg text{fill:var(--ink-2);font:500 20px var(--f-body)}
+
+/* table */
+table.data{position:absolute;border-collapse:collapse;font-size:22px;font-variant-numeric:tabular-nums}
+table.data th{font:600 15px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);text-align:left;padding:8px 16px;border-bottom:2px solid var(--ink)}
+table.data td{padding:9px 16px;border-bottom:1px solid var(--rule);background:var(--paper)}
+table.data td.c{text-align:center}
+table.data tr.rey td{background:var(--hi)}
+
+/* panels */
+.panel{position:absolute;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:24px 28px;box-sizing:border-box}
+.panel h3{margin:0 0 12px;font:600 15px var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.eq{font:400 30px var(--f-mono);line-height:1.7;font-variant-numeric:tabular-nums}
+.big{font-family:var(--f-display);font-size:64px;line-height:1}
+
+/* gini grid */
+.gcell{position:absolute;border-radius:3px;transition:background-color .35s, opacity .35s, transform .35s}
+.gcell.aa{background:var(--a-soft)}.gcell.nn{background:var(--n-soft)}
+.gcell.mix{background:var(--mix);background-image:repeating-linear-gradient(45deg, transparent 0 5px, rgba(255,255,255,.18) 5px 8px)}
+.gcell.off{opacity:0;transform:scale(.4)}
+.sq{position:absolute;border:3px solid;border-radius:4px;transition:all .6s cubic-bezier(.2,.75,.2,1)}
+
+/* bars */
+.bar{position:absolute;transition:left .8s cubic-bezier(.2,.75,.2,1), width .8s cubic-bezier(.2,.75,.2,1), top .8s cubic-bezier(.2,.75,.2,1), height .8s cubic-bezier(.2,.75,.2,1), opacity .4s, background-color .4s}
+.hline{position:absolute;height:0;border-top:3px dashed var(--ink-2);transition:top .8s cubic-bezier(.2,.75,.2,1), opacity .5s, width .8s}
+.hline.level{border-top:4px solid var(--ink)}
+.hl-l{position:absolute;font:500 20px var(--f-mono);white-space:nowrap;transition:top .8s cubic-bezier(.2,.75,.2,1), opacity .5s}
+
+/* tree nodes */
+.node{position:absolute;transform:translate(-50%,-50%);padding:12px 22px;border:2px solid var(--ink);border-radius:10px;background:var(--panel);font:500 24px var(--f-body);white-space:nowrap;transition:opacity .5s, border-color .3s, background-color .3s, box-shadow .3s}
+.node.leaf{border-radius:40px;font-weight:600}
+.node.leaf.la{border-color:var(--a);color:var(--a)}
+.node.leaf.ln{border-color:var(--n);color:var(--n)}
+.node.hot{box-shadow:0 0 0 6px var(--hi)}
+.node small{display:block;font:400 17px var(--f-mono);color:var(--ink-2);margin-top:2px;text-align:center}
+
+/* cards */
+.qcard{position:absolute;transform:translate(-50%,-50%);width:320px;height:170px;border-radius:14px;border:2px solid var(--ink);background:var(--panel);
+  display:grid;place-items:center;text-align:center;font:500 28px var(--f-body);transition:opacity .5s, transform .6s, background-color .4s, border-color .4s, color .4s}
+.qcard.hidden{background:var(--paper-2);border-style:dashed;border-color:var(--rule);color:var(--ink-2)}
+.qcard.win{border-color:var(--a);box-shadow:0 0 0 6px var(--hi)}
+.qcard .sc{display:block;font:500 22px var(--f-mono);color:var(--ink-2);margin-top:6px}
+
+/* code */
+.code{position:absolute;font:400 26px/1.75 var(--f-mono);white-space:pre}
+.code .ln{padding:0 18px;border-radius:6px;transition:background-color .35s, opacity .35s}
+.code.focus .ln{opacity:.38}
+.code .ln.on{background:var(--hi);opacity:1}
+.note{position:absolute;font:500 24px var(--f-body);transition:opacity .4s, top .5s}
+
+.nbbtn{position:absolute;display:inline-flex;align-items:center;gap:14px;padding:18px 32px;border-radius:12px;background:var(--a);color:var(--chip-ink);font:600 28px var(--f-body);text-decoration:none;box-shadow:0 2px 0 rgba(0,0,0,.15);white-space:nowrap}
+.nbbtn:hover{filter:brightness(1.08)}
+.nbbtn:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
+.nbitems{position:absolute;left:104px;top:218px;width:790px;display:grid;grid-template-columns:70px 1fr;row-gap:34px;font-size:30px;line-height:1.35}
+.nbitems .k{font:500 22px var(--f-mono);color:var(--a);padding-top:7px}
+.nbcode{font:400 23px/1.7 var(--f-mono);white-space:pre}
+
+input[type=range]{accent-color:var(--a)}
+.ctl{position:absolute;display:flex;align-items:center;gap:16px;font:500 22px var(--f-body)}
+.ctl input{width:300px}
+
+/* nav */
+#nav{position:absolute;left:0;right:0;bottom:0;height:52px;display:flex;align-items:center;justify-content:center;gap:14px;font:500 14px var(--f-mono);color:var(--ink-2);padding-bottom:env(safe-area-inset-bottom,0px)}
+#nav button{font:500 14px var(--f-mono);color:var(--ink);background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:7px 14px;cursor:pointer}
+#nav button:focus-visible,.ctl input:focus-visible{outline:3px solid var(--a);outline-offset:2px}
+#dots{display:flex;gap:6px}
+#dots i{width:7px;height:7px;border-radius:50%;background:var(--rule)}
+#dots i.on{background:var(--a)}
+#count{min-width:72px;text-align:center}
+@media (max-width:600px){#nav .hint{display:none}}
+@media (prefers-reduced-motion: reduce){*{transition-duration:0s !important;animation-duration:0s !important}}
+</style>
+
+<div id="view">
+  <div id="stage" aria-live="polite"></div>
+  <div id="nav">
+    <button id="prev" aria-label="Previous step">←</button>
+    <span id="count">1 / 1</span>
+    <span id="dots"></span>
+    <button id="next" aria-label="Next step">→</button>
+    <span class="hint">arrow keys or click to step</span>
+  </div>
+</div>
+
+<script>
+(() => {
+const STAGE = document.getElementById('stage');
+const STU = [
+  {n:'Han',   att:0,h:1,c:0,a:0},{n:'Ackbar',att:1,h:1,c:1,a:1},{n:'Luke',att:0,h:2,c:0,a:0},{n:'R2D2',att:1,h:2,c:1,a:1},
+  {n:'C3P0',  att:1,h:3,c:0,a:0},{n:'Lando', att:0,h:3,c:1,a:1},{n:'Leia',att:1,h:5,c:0,a:1},{n:'Chewy',att:0,h:6,c:0,a:1}];
+const BY = Object.fromEntries(STU.map(s=>[s.n,s]));
+const REY = {n:'Rey',att:1,h:3,c:0,a:null};
+
+// ---------- helpers ----------
+let timers=[];
+const later=(fn,ms)=>{const t=setTimeout(fn,ms);timers.push(t);return t};
+const clearLater=()=>{timers.forEach(clearTimeout);timers=[]};
+function mk(tag,cls,parent,html,style){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(style)e.setAttribute('style',style);if(parent)parent.appendChild(e);return e}
+function put(e,x,y,s=1){e.style.transform=`translate(${x}px,${y}px) scale(${s})`}
+function at(e,x,y){e.style.left=x+'px';e.style.top=y+'px';return e}
+function chip(p,s,extra=''){const c=mk('div','chip '+(s.a===1?'ca':s.a===0?'cn':'cq')+' '+extra,p,(extra.includes('sm')?'':(s.a==null?s.n+'?':s.n)));mk('span','tick',c,'✓');return c}
+function rowPos(n,cx,cy,cols=4,gap=80){const out=[];for(let i=0;i<n;i++){const r=Math.floor(i/cols),c=i%cols,inRow=Math.min(cols,n-r*cols);out.push([cx+(c-(inRow-1)/2)*gap,cy+r*gap])}return out}
+const gini=(a,n)=>n?1-(a/n)**2-((n-a)/n)**2:0;
+const f3=x=>x.toFixed(3);
+const fr=(a,b)=>`${a}/${b}`;
+function svgEl(p){const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('width',1600);s.setAttribute('height',900);s.setAttribute('viewBox','0 0 1600 900');p.appendChild(s);return s}
+function sv(tag,attrs,p){const e=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(p)p.appendChild(e);return e}
+function title(el,eyebrow,text){if(eyebrow)mk('div','eyebrow',el,eyebrow);mk('h2','h',el,text)}
+function cap(el,inn,html,out,style){const c=mk('p','cap rv',el,html,style);c.dataset.in=inn;if(out!=null)c.dataset.out=out;return c}
+function rv(e,inn,out){e.classList.add('rv');e.dataset.in=inn;if(out!=null)e.dataset.out=out;return e}
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// tree drawing: nodes {id,x,y,html,cls}, edges [from,to,label]
+function tree(el,nodes,edges,opt={}){
+  const s=svgEl(el), N={}, E={};
+  nodes.forEach(n=>{N[n.id]=n});
+  edges.forEach(([a,b,l])=>{const A=N[a],B=N[b];
+    const g=sv('g',{},s);
+    const p=sv('path',{class:'edge',d:`M${A.x},${A.y+24} C${A.x},${(A.y+B.y)/2} ${B.x},${(A.y+B.y)/2} ${B.x},${B.y-24}`},g);
+    const t=sv('text',{x:(A.x+B.x)/2+(B.x<A.x?-34:14),y:(A.y+B.y)/2+4,'text-anchor':B.x<A.x?'end':'start'},g);t.textContent=l;
+    E[a+'-'+b]={g,p,t}});
+  const D={};
+  nodes.forEach(n=>{const d=mk('div','node '+(n.cls||''),el,n.html);at(d,n.x,n.y);D[n.id]=d});
+  return {N:D,E,svg:s};
+}
+
+// notebooks: Colab links for the three "open the notebook" slides
+const NB={
+  tree:'https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/main/notebooks/demo-first-tree/demo.ipynb',
+  digits:'https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/main/notebooks/demo-digits-forest/demo.ipynb',
+  story:'https://colab.research.google.com/github/njhallman/acc380k-fall-2026/blob/main/notebooks/demo-next-word-forest/demo.ipynb'};
+function notebook(el,o){
+  title(el,`Notebook ${o.n} of 3`,o.title);
+  mk('div','nbitems',el,o.items.map((t,i)=>`<div class="k">0${i+1}</div><div>${t}</div>`).join(''));
+  const a=mk('a','nbbtn',el,'Open in Colab <span aria-hidden="true">↗</span>','left:104px;top:610px');
+  a.href=o.url;a.target='_blank';a.rel='noopener';a.setAttribute('aria-label',`Open notebook ${o.n} in Colab (new tab)`);
+  ['click','pointerdown'].forEach(ev=>a.addEventListener(ev,e=>e.stopPropagation()));
+  mk('div','abs mono muted',el,o.time,'left:420px;top:634px;font-size:20px');
+  const P=mk('div','panel',el,`<h3>${o.panel}</h3>`+(o.code?`<div class="nbcode">${o.code.join('\n')}</div>`:''),'left:960px;top:218px;width:540px');
+  mk('p','cap',el,o.cap);
+  return P;
+}
+
+// ---------- slide registry ----------
+const slides=[];
+function slide(def){const el=mk('section','slide',STAGE);el.setAttribute('aria-label',def.name||'');def.el=el;def.build(el);slides.push(def)}
+
+// ===== 1. Title =====
+slide({name:'Title',steps:1,build(el){
+  mk('div','eyebrow',el,'ACC380K · Python for Accounting');
+  mk('h1','abs',el,'Growing a forest<br>by hand','left:104px;top:220px;margin:0;font:400 128px/1.0 var(--f-display);letter-spacing:-.02em');
+  mk('p','abs',el,'How a random forest turns eight students into a prediction, one yes/no question at a time.','left:108px;top:520px;width:640px;margin:0;font-size:30px;line-height:1.4;color:var(--ink-2)');
+  mk('p','abs mono',el,'Nick Hallman','left:108px;top:700px;margin:0;font-size:20px;color:var(--ink-2)');
+  // chips as a tree canopy
+  const rows=[[1],[2],[2],[3]];let i=0;const order=['Leia','Ackbar','R2D2','Han','Lando','Luke','C3P0','Chewy'];
+  rows.forEach((r,ri)=>{for(let k=0;k<r[0];k++){const c=chip(el,BY[order[i++]]);put(c,1180+(k-(r[0]-1)/2)*96,250+ri*92)}});
+  mk('div','abs',el,'','left:1172px;top:562px;width:16px;height:120px;background:var(--ink-2);border-radius:3px');
+}});
+
+// ===== 2. Data =====
+slide({name:'The data',steps:2,build(el){
+  title(el,'The question','Eight students. Can they predict a ninth?');
+  const t=mk('table','data',el);at(t,104,190);
+  t.innerHTML='<tr><th>Student</th><th>Perfect attendance</th><th>Hours / week</th><th>Prior coding</th><th>Got an A</th></tr>'+
+    STU.map(s=>`<tr><td>${s.n}</td><td class="c">${s.att?'Yes':'No'}</td><td class="c mono">${s.h}</td><td class="c">${s.c?'Yes':'No'}</td><td class="c ${s.a?'ta':'tn'}">${s.a?'Yes':'No'}</td></tr>`).join('')+
+    `<tr class="rey rv" data-in="1"><td><b>Rey</b></td><td class="c">Yes</td><td class="c mono">3</td><td class="c">No</td><td class="c"><b>?</b></td></tr>`;
+  rowPos(8,1250,300,4,92).forEach(([x,y],i)=>put(chip(el,STU[i]),x,y));
+  const k=mk('div','abs',el,'<span class="ta">●</span> got an A &nbsp;&nbsp; <span class="tn">●</span> did not','left:1090px;top:430px;font-size:22px;color:var(--ink-2)');
+  const r=chip(el,REY);put(r,1250,560);rv(r,1);
+  cap(el,0,'Five got an A, three did not. Each row has three facts we could ask about.',1);
+  cap(el,1,'Rey shows up: attendance yes, 3 hours a week, no prior coding. <b>What should we predict?</b>');
+}});
+
+// ===== 3. Questions sort students =====
+slide({name:'Questions sort',steps:5,build(el){
+  title(el,'Decision trees','A tree is a stack of yes/no questions');
+  const s=svgEl(el);
+  const l1=sv('path',{class:'edge',d:'M800,330 C800,420 480,400 480,470'},s),l2=sv('path',{class:'edge',d:'M800,330 C800,420 1120,400 1120,470'},s);
+  [l1,l2].forEach(e=>rv(e,1));
+  this.q=mk('div','qbox rv',el,'Perfect attendance?');at(this.q,800,290);this.q.dataset.in=1;
+  this.bins=[[480,'Yes'],[1120,'No']].map(([x,l])=>{const b=rv(mk('div','bin',el,null,'width:380px;height:200px'),1);at(b,x,590);
+    const t=rv(mk('div','lbl',el,l),1);at(t,x,460);const c=rv(mk('div','cnt',el,''),2);at(c,x,700);return {b,c}});
+  this.chips=STU.map(s=>chip(el,s));
+  cap(el,0,'Start with everyone in one group.',1);
+  cap(el,1,'Ask one question. Everyone answers yes or no.',2);
+  cap(el,2,'Attendance splits them, but <b>both groups are still mixed</b>.',3);
+  cap(el,3,'Prior coding does better: the Yes group is <b>pure</b>. Every student in it got an A.',4);
+  cap(el,4,'To choose between questions, we need a number for <b>how mixed</b> a group is.');
+},go(st){
+  const key=st>=3?'c':'att';
+  this.q.textContent=st>=3?'Prior coding?':'Perfect attendance?';
+  if(st<2){rowPos(8,800,st<1?470:600,8,96).forEach(([x,y],i)=>put(this.chips[i],x,y));this.bins.forEach(b=>b.b.classList.remove('pure'));return}
+  const yes=STU.filter(s=>s[key]),no=STU.filter(s=>!s[key]);
+  [[yes,480,0],[no,1120,1]].forEach(([g,x,bi])=>{
+    rowPos(g.length,x,555,4,84).forEach(([px,py],i)=>put(this.chips[STU.indexOf(g[i])],px,py));
+    const a=g.filter(s=>s.a).length;this.bins[bi].c.innerHTML=`<span class="ta">${a} A</span> · <span class="tn">${g.length-a} not</span>`;
+    this.bins[bi].b.classList.toggle('pure',a===0||a===g.length);
+  });
+}});
+
+// ===== 4. Gini = chance two picks disagree =====
+slide({name:'Gini intuition',steps:4,build(el){
+  title(el,'Measuring mixture','Gini impurity: the chance two random picks disagree');
+  const bag=mk('div','abs',el,null,'left:90px;top:290px;width:380px;height:380px;border-radius:50%;border:2px solid var(--rule);background:var(--paper-2)');
+  mk('div','abs mono muted',el,'all eight students','left:180px;top:690px;font-size:18px');
+  this.chips=STU.map((s,i)=>{const c=chip(el,s);const ang=i/8*Math.PI*2-Math.PI/2;put(c,280+Math.cos(ang)*125,480+Math.sin(ang)*125);return c});
+  // tally
+  this.tally=rv(mk('div','panel',el,'<h3>Pick two, put them back, repeat</h3><div class="tl" style="display:grid;grid-template-columns:repeat(8,44px);gap:8px 6px;margin-top:6px"></div><div class="tc eq" style="margin-top:14px;font-size:26px"></div>','left:560px;top:250px;width:440px'),1,2);
+  // grid
+  const G=mk('div','abs',el,null,'left:600px;top:250px;width:440px;height:440px');rv(G,2);
+  this.cells=[];const order=[...STU].sort((a,b)=>b.a-a.a);
+  for(let i=0;i<8;i++)for(let j=0;j<8;j++){const A=order[i].a,B=order[j].a;
+    const c=mk('div','gcell off '+(A&&B?'aa':!A&&!B?'nn':'mix'),G,null,`left:${30+j*51}px;top:${30+i*51}px;width:47px;height:47px`);this.cells.push(c)}
+  order.forEach((s,i)=>{mk('div','abs',G,null,`left:${44+i*51}px;top:6px;width:18px;height:18px;border-radius:50%;background:var(--${s.a?'a':'n'})`);
+    mk('div','abs',G,null,`left:6px;top:${44+i*51}px;width:18px;height:18px;border-radius:50%;background:var(--${s.a?'a':'n'})`)});
+  mk('div','abs mono muted',G,'second pick →','left:30px;top:-26px;font-size:17px');
+  mk('div','abs mono muted',G,'first pick ↓','left:-118px;top:30px;font-size:17px');
+  this.sqA=mk('div','sq',G,null,`left:28px;top:28px;width:${5*51-2}px;height:${5*51-2}px;border-color:var(--a);opacity:0`);
+  this.sqN=mk('div','sq',G,null,`left:${28+5*51}px;top:${28+5*51}px;width:${3*51-2}px;height:${3*51-2}px;border-color:var(--n);opacity:0`);
+  const F=rv(mk('div','panel',el,`<h3>Count the squares</h3>
+    <div style="display:grid;grid-template-columns:auto auto;gap:10px 22px;font-size:24px;align-items:baseline">
+      <span class="ta">both A</span><span class="mono">(5/8)² = 25/64</span>
+      <span class="tn">both not A</span><span class="mono">(3/8)² = 9/64</span>
+      <b>disagree</b><span class="mono">1 − 25/64 − 9/64<br>= 30/64</span></div>
+    <div style="margin-top:14px;display:flex;align-items:baseline;gap:16px"><span class="big">0.469</span><span class="muted" style="font-size:22px">Gini of the whole class</span></div>`,'left:1090px;top:250px;width:440px'),3);
+  cap(el,0,'Reach in, pick a student, put them back, pick again. <b>How often do the two picks disagree?</b>',1);
+  cap(el,1,'Random draws land close to one half. We can count it exactly instead.',2);
+  cap(el,2,'All 64 ordered pairs are equally likely. The dark cells pair an A with a not-A.',3);
+  cap(el,3,'<b>Gini = 1 − p(A)² − p(not A)²</b>. The squares are the "same" pairs; what is left over is the chance of disagreeing.');
+},go(st,anim){
+  const cells=this.cells;
+  cells.forEach((c,i)=>{c.style.transitionDelay=(st===2&&anim)?(i*12)+'ms':'0ms';c.classList.toggle('off',st<2)});
+  this.sqA.style.opacity=this.sqN.style.opacity=st>=3?1:0;
+  const tl=this.tally.querySelector('.tl'),tc=this.tally.querySelector('.tc');
+  tl.innerHTML='';tc.innerHTML='';this.chips.forEach(c=>c.classList.remove('ring'));
+  if(st===1){const r=rng(7);const N=24;let diff=0;
+    const draw=(k)=>{const a=STU[Math.floor(r()*8)],b=STU[Math.floor(r()*8)];const d=a.a!==b.a;diff+=d;
+      mk('div','',tl,`<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:var(--${a.a?'a':'n'})"></span><span style="display:inline-block;width:18px;height:18px;border-radius:50%;margin-left:3px;background:var(--${b.a?'a':'n'})"></span>`,`padding:3px;border-radius:6px;${d?'outline:2px solid var(--ink)':''}`);
+      tc.innerHTML=`${diff} of ${k+1} disagree · ${Math.round(diff/(k+1)*100)}%`;
+      if(anim){this.chips.forEach(c=>c.classList.remove('ring'));this.chips[STU.indexOf(a)].classList.add('ring');this.chips[STU.indexOf(b)].classList.add('ring')}};
+    if(anim){for(let k=0;k<N;k++)later(()=>draw(k),300+k*170);later(()=>this.chips.forEach(c=>c.classList.remove('ring')),300+N*170+200)}
+    else for(let k=0;k<N;k++)draw(k);
+  }
+}});
+
+// ===== 5. Gini range slider =====
+slide({name:'Gini range',steps:4,build(el){
+  title(el,'Measuring mixture','Pure groups score 0. A 50/50 split scores 0.5');
+  const G=mk('div','abs',el,null,'left:120px;top:230px;width:440px;height:440px');this.G=G;this.cells=[];
+  for(let i=0;i<8;i++)for(let j=0;j<8;j++)this.cells.push(mk('div','gcell',G,null,`left:${j*51}px;top:${i*51}px;width:47px;height:47px`));
+  // chart
+  const s=svgEl(el);const X=p=>760+p*720,Y=g=>700-g/0.5*400;this.X=X;this.Y=Y;
+  sv('line',{x1:760,y1:700,x2:1490,y2:700,stroke:'var(--ink-2)','stroke-width':2},s);
+  sv('line',{x1:760,y1:700,x2:760,y2:280,stroke:'var(--ink-2)','stroke-width':2},s);
+  [0,0.25,0.5].forEach(g=>{sv('line',{x1:752,y1:Y(g),x2:1480,y2:Y(g),stroke:'var(--rule)','stroke-width':1},s);const t=sv('text',{x:740,y:Y(g)+7,'text-anchor':'end'},s);t.textContent=g.toFixed(2)});
+  for(let k=0;k<=8;k++){const t=sv('text',{x:X(k/8),y:732,'text-anchor':'middle'},s);t.textContent=k}
+  const tl=sv('text',{x:1120,y:770,'text-anchor':'middle'},s);tl.textContent='students (of 8) who got an A';
+  const tg=sv('text',{x:770,y:262},s);tg.textContent='Gini';
+  let d='';for(let i=0;i<=100;i++){const p=i/100;d+=(i?'L':'M')+X(p)+','+Y(2*p*(1-p))}
+  sv('path',{d,fill:'none',stroke:'var(--ink)','stroke-width':3},s);
+  for(let k=0;k<=8;k++)sv('circle',{cx:X(k/8),cy:Y(gini(k,8)),r:5,fill:'var(--ink-2)'},s);
+  this.dot=sv('circle',{cx:X(5/8),cy:Y(gini(5,8)),r:13,fill:'var(--a)',stroke:'var(--paper)','stroke-width':4,style:'transition:cx .6s, cy .6s'},s);
+  this.read=mk('div','abs mono',el,'','left:120px;top:690px;font-size:26px');
+  const ctl=mk('div','ctl',el,'<label for="gk">Drag</label><input id="gk" type="range" min="0" max="8" step="1" value="5">','left:120px;top:740px');
+  this.inp=ctl.querySelector('input');this.inp.addEventListener('input',e=>{e.stopPropagation();this.set(+this.inp.value)});
+  ctl.addEventListener('click',e=>e.stopPropagation());ctl.addEventListener('pointerdown',e=>e.stopPropagation());
+  cap(el,0,'Our class: 5 of 8 got an A, Gini 0.469.',1,'left:760px;top:790px;width:760px');
+  cap(el,1,'All eight got an A: no pair can disagree, so <b>Gini = 0</b>.',2,'left:760px;top:790px;width:760px');
+  cap(el,2,'Four and four: the most mixed a two-label group can be, <b>Gini = 0.5</b>.',3,'left:760px;top:790px;width:760px');
+  cap(el,3,'Use the slider. Gini depends only on the mix, never on group size.',null,'left:760px;top:790px;width:760px');
+},set(k){
+  this.inp.value=k;
+  this.cells.forEach((c,idx)=>{const i=Math.floor(idx/8),j=idx%8;const A=i<k,B=j<k;c.className='gcell '+(A&&B?'aa':!A&&!B?'nn':'mix')});
+  this.dot.setAttribute('cx',this.X(k/8));this.dot.setAttribute('cy',this.Y(gini(k,8)));
+  this.read.innerHTML=`<span class="ta">${k} A</span> · <span class="tn">${8-k} not</span> → Gini ${f3(gini(k,8))}`;
+},go(st){this.set([5,8,4,4][st])}});
+
+// ===== 6. Weighted Gini =====
+slide({name:'Weighted Gini',steps:5,build(el){
+  title(el,'Scoring a question','Score a question by the mixture it leaves behind');
+  this.q=mk('div','qbox',el,'Perfect attendance?');at(this.q,440,250);
+  this.bins=[[250,'Yes'],[630,'No']].map(([x,l])=>{const b=mk('div','bin',el,null,'width:330px;height:190px');at(b,x,470);
+    const t=mk('div','lbl',el,l);at(t,x,345);const c=mk('div','cnt',el,'');at(c,x,575);
+    const g=mk('div','cnt',el,'','font-size:19px;opacity:0');at(g,x,612);return {b,c,g,x}});
+  this.chips=STU.map(s=>chip(el,s));
+  this.wcalc=mk('div','abs mono',el,'','left:104px;top:668px;width:740px;font-size:25px;white-space:nowrap;opacity:0;transition:opacity .4s');
+  mk('div','abs mono muted',el,'share × Gini, added up','left:104px;top:708px;font-size:18px').dataset.w=1;
+  this.wnote=el.querySelector('[data-w]');this.wnote.style.transition='opacity .4s';
+  // chart frame
+  this.x0=880;this.W=520;this.base=700;this.k=800; // px per unit gini
+  mk('div','abs',el,null,`left:${this.x0}px;top:${this.base}px;width:${this.W}px;height:2px;background:var(--ink-2)`);
+  mk('div','abs mono muted',el,'← all 8 students, side by side →',`left:${this.x0+110}px;top:${this.base+12}px;font-size:18px`);
+  this.bars=[0,1].map(i=>{const b=mk('div','bar',el,null,`background:var(--${i?'n':'a'}-soft);border:2px solid var(--${i?'n':'a'});box-sizing:border-box;opacity:0`);
+    const g=mk('div','hl-l',el,'');const sh=mk('div','hl-l muted',el,'');return {b,g,sh}});
+  this.root=mk('div','hline',el,null,`left:${this.x0}px;width:${this.W}px;top:${this.base-0.469*this.k}px`);
+  this.rootL=mk('div','hl-l muted',el,'before: 0.469',`left:${this.x0+this.W+12}px;top:${this.base-0.469*this.k-14}px`);
+  this.level=mk('div','hline level',el,null,`left:${this.x0}px;width:${this.W}px`);
+  this.levelL=mk('div','hl-l',el,'',`left:${this.x0+this.W+12}px;font-weight:600`);
+  cap(el,0,'Split the class, then measure each group.',1);
+  cap(el,1,'Bar height = that group\'s Gini. Bar width = its share of the students.',2);
+  cap(el,2,'Weight each group\'s Gini by its share of the students and add. The solid line marks that <b>weighted Gini</b>: 0.4375.',3);
+  cap(el,3,'Prior coding: a narrow empty bar (pure) and a wide one at 0.48. Same sum, and the weighted Gini drops to <b>0.300</b>.',4);
+  cap(el,4,'Lower weighted Gini = less mixture left = better question. <b>Prior coding beats attendance.</b>');
+},go(st){
+  const key=st>=3?'c':'att';this.q.textContent=st>=3?'Prior coding?':'Perfect attendance?';
+  const groups=[STU.filter(s=>s[key]),STU.filter(s=>!s[key])];
+  let x=this.x0,wsum=0;const terms=[];
+  groups.forEach((g,i)=>{
+    rowPos(g.length,this.bins[i].x,430,4,78).forEach(([px,py],k)=>put(this.chips[STU.indexOf(g[k])],px,py));
+    const a=g.filter(s=>s.a).length,gi=gini(a,g.length);wsum+=gi*g.length/8;
+    this.bins[i].c.innerHTML=`<span class="ta">${a} A</span> · <span class="tn">${g.length-a} not</span>`;
+    this.bins[i].b.classList.toggle('pure',a===0||a===g.length);
+    this.bins[i].g.textContent=`1 − (${a}/${g.length})² − (${g.length-a}/${g.length})² = ${f3(gi)}`;this.bins[i].g.style.opacity=st>=1?1:0;
+    terms.push(`${g.length}/8 × ${f3(gi)}`);
+    const w=st>=1?this.W*g.length/8:this.W/2, h=Math.max(gi*this.k,0);
+    const B=this.bars[i];Object.assign(B.b.style,{left:x+'px',width:w+'px',top:(this.base-h)+'px',height:h+'px',opacity:st>=1?(st>=2?.55:1):0});
+    Object.assign(B.g.style,{left:(x+12)+'px',top:(this.base-h-34)+'px',opacity:st>=1?1:0});B.g.textContent='Gini '+f3(gi);
+    Object.assign(B.sh.style,{left:(x+12)+'px',top:(this.base+42)+'px',opacity:st>=1?1:0});B.sh.textContent=`${g.length}/8`;
+    x+=w;
+  });
+  const L=this.base-wsum*this.k;
+  this.level.style.top=L+'px';this.level.style.opacity=st>=2?1:0;
+  this.levelL.style.top=(L-14)+'px';this.levelL.style.opacity=st>=2?1:0;
+  this.levelL.textContent='after: '+(key==='c'?'0.300':'0.4375');
+  this.wcalc.innerHTML=terms.join(' + ')+' = <b>'+(key==='c'?'0.300':'0.4375')+'</b>';
+  this.wcalc.style.opacity=this.wnote.style.opacity=st>=2?1:0;
+  this.root.style.opacity=this.rootL.style.opacity=st>=2?1:0;
+  this.rootL.style.top=(this.base-0.469*this.k-(key==='c'?14:44))+'px';
+}});
+
+// ===== 7. Thresholds for hours =====
+slide({name:'Thresholds',steps:6,build(el){
+  title(el,'Numeric questions','For hours, slide a cutoff and score every spot');
+  const X=h=>200+(h-0.5)*200;this.X=X;
+  this.tint=mk('div','abs mv',el,null,`left:200px;top:330px;height:250px;width:0;background:var(--paper-2);border-radius:8px 0 0 8px`);
+  mk('div','abs',el,null,'left:200px;top:580px;width:1200px;height:2px;background:var(--ink)');
+  for(let h=1;h<=6;h++){mk('div','abs',el,null,`left:${X(h)-1}px;top:574px;width:2px;height:14px;background:var(--ink)`);mk('div','abs mono',el,h,`left:${X(h)-6}px;top:592px;font-size:20px`)}
+  mk('div','abs muted',el,'hours per week','left:1260px;top:592px;font-size:20px');
+  const seen={};STU.forEach(s=>{const k=seen[s.h]=(seen[s.h]||0)+1;put(chip(el,s),X(s.h),540-(k-1)*80)});
+  this.line=mk('div','abs mv',el,null,'left:0;top:320px;width:4px;height:270px;margin-left:-2px;background:var(--a);opacity:0;cursor:ew-resize');
+  this.tag=mk('div','abs mv mono',el,'','left:0;top:282px;transform:translateX(-50%);font-size:22px;font-weight:600;color:var(--a);opacity:0;white-space:nowrap');
+  this.read=mk('div','abs mono',el,'','left:200px;top:640px;width:1200px;text-align:center;font-size:24px;opacity:0;transition:opacity .4s');
+  this.cands=[1.5,2.5,4,5.5];
+  this.bars=this.cands.map(t=>{const l=this.lr(t);const v=l.w;const b=mk('div','bar',el,null,`left:${X(t)-30}px;width:60px;top:830px;height:0;background:var(--mix)`);
+    const lb=mk('div','abs mono',el,f3(v),`left:${X(t)-40}px;width:80px;text-align:center;top:${830-v*240-30}px;font-size:20px;opacity:0;transition:opacity .4s`);return {b,lb,v}});
+  mk('div','abs mono muted',el,'weighted Gini at each cutoff','left:200px;top:846px;font-size:18px');
+  cap(el,0,'Sort by hours. A cutoff can only sit between two different values, so there are four to try.',1,'left:104px;top:170px');
+  cap(el,1,'Cutoff 1.5: one A and one not on the left. Barely better than no split.',2,'left:104px;top:170px');
+  cap(el,2,'Cutoff 2.5: still mixed on both sides.',3,'left:104px;top:170px');
+  cap(el,3,'Cutoff 4: the right side is pure. The score drops to 0.375.',4,'left:104px;top:170px');
+  cap(el,4,'Cutoff 5.5: only Chewy on the right. Worse again.',5,'left:104px;top:170px');
+  cap(el,5,'<b>Hours ≤ 4</b> is the best hours question. Drag the orange line to check any cutoff.',null,'left:104px;top:170px');
+  // dragging
+  const drag=e=>{const r=STAGE.getBoundingClientRect();const sc=r.width/1600;const x=(e.clientX-r.left)/sc;const h=(x-200)/200+0.5;
+    let best=this.cands[0];this.cands.forEach(t=>{if(Math.abs(t-h)<Math.abs(best-h))best=t});this.setT(best,true)};
+  this.line.addEventListener('pointerdown',e=>{e.stopPropagation();this.line.setPointerCapture(e.pointerId);this.dragging=true});
+  this.line.addEventListener('pointermove',e=>{if(this.dragging)drag(e)});
+  this.line.addEventListener('pointerup',e=>{this.dragging=false});
+  this.line.addEventListener('click',e=>e.stopPropagation());
+},lr(t){const L=STU.filter(s=>s.h<=t),R=STU.filter(s=>s.h>t);const la=L.filter(s=>s.a).length,ra=R.filter(s=>s.a).length;
+  return {L,R,la,ra,gl:gini(la,L.length),gr:gini(ra,R.length),w:L.length/8*gini(la,L.length)+R.length/8*gini(ra,R.length)}},
+setT(t,show){const X=this.X(t);const l=this.lr(t);
+  this.line.style.left=X+'px';this.line.style.opacity=1;this.tag.style.left=X+'px';this.tag.style.opacity=1;this.tag.textContent='≤ '+t;
+  this.tint.style.width=(X-200)+'px';
+  this.read.style.opacity=1;
+  this.read.innerHTML=`left <span class="ta">${l.la} A</span>·<span class="tn">${l.L.length-l.la} not</span> (Gini ${f3(l.gl)}) &nbsp;&nbsp;|&nbsp;&nbsp; right <span class="ta">${l.ra} A</span>·<span class="tn">${l.R.length-l.ra} not</span> (Gini ${f3(l.gr)}) &nbsp;&nbsp;→&nbsp;&nbsp; <b>weighted ${f3(l.w)}</b>`;
+  if(show){const i=this.cands.indexOf(t);this.reveal(Math.max(this.shown||0,i+1))}},
+reveal(n){this.shown=n;this.bars.forEach((b,i)=>{const on=i<n;b.b.style.top=(830-(on?b.v*240:0))+'px';b.b.style.height=(on?b.v*240:0)+'px';b.lb.style.opacity=on?1:0;
+  b.b.style.background=(this.best&&i===2)?'var(--a)':'var(--mix)'})},
+go(st){
+  this.best=st>=5;
+  if(st===0){this.line.style.opacity=0;this.tag.style.opacity=0;this.tint.style.width='0px';this.read.style.opacity=0;this.reveal(0);return}
+  const t=this.cands[Math.min(st,4)-1]??4;this.setT(st>=5?4:t,false);this.reveal(Math.min(st,4));
+}});
+
+// ===== 8. Leaderboard =====
+slide({name:'Best first question',steps:3,build(el){
+  title(el,'Choosing the root','Every candidate, scored the same way');
+  const rows=[['Prior coding?',0.3],['Hours ≤ 4?',0.375],['Hours ≤ 5.5?',3/7],['Perfect attendance?',0.4375],['Hours ≤ 2.5?',0.4375],['Hours ≤ 1.5?',11/24]];
+  const x0=520,k=1800,y0=220;this.k=k;this.x0=x0;
+  this.rows=rows.map(([l,v],i)=>{const y=y0+i*76;
+    mk('div','abs',el,l,`left:104px;top:${y+8}px;width:390px;text-align:right;font-size:26px`);
+    const b=mk('div','bar',el,null,`left:${x0}px;top:${y}px;height:52px;width:0;background:var(--mix);border-radius:0 6px 6px 0`);
+    const t=mk('div','abs mono',el,f3(v),`left:${x0}px;top:${y+11}px;width:90px;text-align:right;font-size:24px;color:var(--paper);opacity:0;transition:opacity .4s, left .8s`);
+    return {b,t,v}});
+  // axis: bars show value - 0.25 offset? keep honest: start at 0
+  this.root=mk('div','abs',el,null,`left:${x0+(0.46875-0.25)*k}px;top:200px;height:480px;width:0;border-left:3px dashed var(--ink-2)`);
+  mk('div','abs mono muted',el,'before splitting: 0.469',`left:${x0+(0.46875-0.25)*k+12}px;top:196px;font-size:20px`);
+  mk('div','abs mono muted',el,'bars start at 0.25 so small differences show','left:520px;top:690px;font-size:18px;opacity:.8');
+  cap(el,0,'The dashed line is the mixture before any question.',1);
+  cap(el,1,'Each bar is the weighted Gini a question would leave. Shorter is better.',2);
+  cap(el,2,'<b>Prior coding</b> removes the most mixture, from 0.469 to 0.300. It becomes the first question.');
+},go(st,anim){
+  this.rows.forEach((r,i)=>{const w=st>=1?(r.v-0.25)*this.k:0;r.b.style.width=w+'px';r.b.style.transitionDelay=(anim&&st===1)?i*90+'ms':'0ms';
+    r.t.style.left=(this.x0+w-102)+'px';r.t.style.opacity=st>=1?1:0;r.b.style.background=st>=2&&i===0?'var(--a)':'var(--mix)'});
+  this.root.style.left=(this.x0+(0.46875-0.25)*this.k)+'px';
+}});
+
+// ===== 9. Grow the tree =====
+function mainTree(el){
+  return tree(el,[
+    {id:'r',x:560,y:220,html:'Prior coding?'},
+    {id:'L',x:250,y:420,html:'A<small>3 of 3 got an A</small>',cls:'leaf la'},
+    {id:'R',x:860,y:420,html:'Hours ≤ 4?'},
+    {id:'RL',x:640,y:640,html:'Not A<small>0 of 3 got an A</small>',cls:'leaf ln'},
+    {id:'RR',x:1080,y:640,html:'A<small>2 of 2 got an A</small>',cls:'leaf la'}],
+    [['r','L','Yes'],['r','R','No'],['R','RL','Yes'],['R','RR','No']]);
+}
+slide({name:'Grow the tree',steps:3,build(el){
+  title(el,'Growing','Then ask again inside each group');
+  this.T=mainTree(el);
+  const {N,E}=this.T;
+  this.hold=mk('div','bin',el,null,'width:440px;height:110px;border-color:var(--ink-2)');at(this.hold,860,500);
+  this.holdL=mk('div','lbl',el,'<span class="ta">2 A</span> · <span class="tn">3 not</span>: still mixed');at(this.holdL,860,420);
+  this.chips=STU.map(s=>chip(el,s));
+  const P=rv(mk('div','panel',el,'<h3>Questions for these five</h3>'+
+    [['Hours ≤ 4?',0],['Hours ≤ 2.5?',4/15],['Hours ≤ 5.5?',0.3],['Hours ≤ 1.5?',0.4],['Perfect attendance?',7/15]].map(([l,v],i)=>
+    `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:${i?'1px solid var(--rule)':'none'};font-size:21px;white-space:nowrap">
+     <span ${i===0?'class="ta"':''}>${l}</span><span class="mono" style="display:flex;align-items:center;gap:10px"><span style="display:inline-block;height:12px;width:${v*160}px;background:var(--${i===0?'a':'mix'})"></span>${f3(v)}</span></div>`).join(''),
+    'left:1130px;top:250px;width:420px'),1);
+  this.N=N;this.E=E;
+  cap(el,0,'Yes branch: all A, so we stop and make it a leaf. No branch: five students, still mixed.',1);
+  cap(el,1,'Same method, <b>using only those five</b>. Hours ≤ 4 separates them perfectly.',2);
+  cap(el,2,'Both new groups are pure. The tree is finished: two questions, three leaves.');
+},go(st){
+  const {N,E}=this;const grown=st>=2;
+  [N.RL,N.RR].forEach(n=>n.style.opacity=grown?1:0);
+  ['R-RL','R-RR'].forEach(k=>E[k].g.style.opacity=grown?1:0);
+  N.R.style.opacity=grown?1:0;
+  this.hold.style.opacity=this.holdL.style.opacity=grown?0:1;
+  const yes=STU.filter(s=>s.c),no=STU.filter(s=>!s.c);
+  rowPos(3,250,510,3,76).forEach(([x,y],i)=>put(this.chips[STU.indexOf(yes[i])],x,y,.85));
+  if(!grown)rowPos(5,860,500,5,80).forEach(([x,y],i)=>put(this.chips[STU.indexOf(no[i])],x,y,.85));
+  else{const l=no.filter(s=>s.h<=4),r=no.filter(s=>s.h>4);
+    rowPos(3,640,730,3,76).forEach(([x,y],i)=>put(this.chips[STU.indexOf(l[i])],x,y,.85));
+    rowPos(2,1080,730,2,76).forEach(([x,y],i)=>put(this.chips[STU.indexOf(r[i])],x,y,.85));}
+}});
+
+// ===== 10. Rey walks the tree =====
+slide({name:'Predict Rey',steps:4,build(el){
+  title(el,'Predicting','Rey answers the questions and lands in a leaf');
+  this.T=mainTree(el);
+  mk('div','panel',el,`<h3>Rey</h3><div style="font-size:24px;line-height:1.7">Perfect attendance: Yes<br>Hours / week: <span class="mono">3</span><br>Prior coding: No</div>`,'left:1250px;top:190px;width:290px');
+  this.rey=chip(el,REY);
+  this.ans1=rv(mk('div','abs',el,'No prior coding → right','left:940px;top:462px;font-size:22px;color:var(--a);font-weight:600'),2);
+  this.ans2=rv(mk('div','abs',el,'3 ≤ 4 → Yes','left:330px;top:545px;width:250px;text-align:right;font-size:22px;color:var(--a);font-weight:600'),3);
+  cap(el,0,'A new case starts at the top.',1);
+  cap(el,1,'First question: does Rey have prior coding?',2);
+  cap(el,2,'No. Rey goes right and meets the hours question.',3);
+  cap(el,3,'Three hours is at most four, so Rey lands with Han, Luke and C3P0. <b>Prediction: no A.</b>');
+},go(st){
+  const {N,E}=this.T;
+  const P=[[1395,420],[700,220],[1000,420],[640,560]][st];put(this.rey,P[0],P[1]);
+  Object.values(E).forEach(e=>e.p.classList.remove('hot'));Object.values(N).forEach(n=>n.classList.remove('hot'));
+  if(st>=2)E['r-R'].p.classList.add('hot');if(st>=3){E['R-RL'].p.classList.add('hot');N.RL.classList.add('hot')}
+  this.rey.className='chip '+(st>=3?'cn':'cq');
+}});
+
+// ===== 11. Perfect fit, thin evidence =====
+slide({name:'Fit vs evidence',steps:3,build(el){
+  title(el,'A warning','A perfect score on students it has already seen');
+  this.T=mainTree(el);
+  const yes=STU.filter(s=>s.c),no=STU.filter(s=>!s.c),l=no.filter(s=>s.h<=4),r=no.filter(s=>s.h>4);
+  this.chips={};
+  [[yes,250,510,3],[l,640,730,3],[r,1080,730,2]].forEach(([g,x,y,c])=>rowPos(g.length,x,y,c,76).forEach(([px,py],i)=>{const k=chip(el,g[i]);put(k,px,py,.85);this.chips[g[i].n]=k}));
+  this.ring=mk('div','abs',el,null,'left:500px;top:575px;width:280px;height:210px;border:4px solid var(--ink);border-radius:24px;opacity:0;transition:opacity .4s');
+  mk('div','panel',el,`<h3>Training score</h3><div class="big">8 / 8</div><div class="muted" style="font-size:22px;margin-top:8px">every leaf is pure</div>`,'left:1250px;top:190px;width:290px');
+  cap(el,0,'Check the tree against the students it learned from.',1);
+  cap(el,1,'Every student lands in a leaf with the right answer. <b>8 of 8.</b>',2);
+  cap(el,2,'But Rey\'s prediction rests on <b>three students</b>. A few different students, and this tree could look completely different.');
+},go(st){
+  Object.values(this.chips).forEach(c=>c.classList.toggle('ticked',st>=1));
+  this.ring.style.opacity=st>=2?1:0;
+}});
+
+// ===== Tree code =====
+slide({name:'A tree in scikit-learn',steps:6,build(el){
+  title(el,'In Python','Every line is something we just did by hand');
+  const lines=['from sklearn.tree import DecisionTreeClassifier','','tree = DecisionTreeClassifier(','    criterion="gini",','    max_depth=None,',')','tree.fit(X, y)','tree.predict(X_rey)','tree.score(X, y)'];
+  this.code=mk('div','code',el,lines.map(l=>`<div class="ln">${l||' '}</div>`).join(''),'left:104px;top:200px');
+  this.lns=[...this.code.querySelectorAll('.ln')];
+  this.notes=[[3,'score each question by weighted Gini'],[4,'no limit on how many questions deep'],[6,'best question, split, repeat in each group'],[7,'Rey lands in a leaf: no A'],[8,'8 of 8 on the students it learned from']].map(([li,t])=>{const n=mk('div','note',el,'← '+t,`left:820px;top:${200+li*45.5+4}px;opacity:0;color:var(--a)`);n._li=li;return n});
+  cap(el,0,'The whole tree is a few lines.',1);
+  cap(el,1,'<code>criterion="gini"</code>: how each question is scored. It is the default, so you can leave it out.',2);
+  cap(el,2,'<code>max_depth=None</code>: no limit, so the tree keeps asking until every leaf is pure. Also the default.',3);
+  cap(el,3,'<code>fit</code> does what we did: score every question, split on the best one, then repeat inside each group.',4);
+  cap(el,4,'<code>predict</code> sends Rey down the questions to a leaf.',5);
+  cap(el,5,'<code>score</code> checks the tree against the students it learned from. A perfect 8 of 8 is weak evidence.');
+},go(st){
+  const map={1:3,2:4,3:6,4:7,5:8};this.code.classList.toggle('focus',st>=1);
+  this.lns.forEach((l,i)=>l.classList.toggle('on',map[st]===i));
+  this.notes.forEach(n=>n.style.opacity=map[st]===n._li?1:0);
+}});
+
+// ===== Notebook 1 =====
+slide({name:'Notebook: first tree',steps:1,build(el){
+  notebook(el,{n:1,title:'Now grow the same tree in Python',url:NB.tree,time:'runs in a few seconds',
+    items:['Load the eight students as a table.','Fit a decision tree and draw it. It should match the one we grew by hand.','Predict Rey. Then drop two students and watch the tree change.'],
+    panel:'The whole tree',code:['tree = DecisionTreeClassifier()','tree.fit(X, y)','','plot_tree(tree)','tree.predict(rey)'],
+    cap:'Open the notebook and run the cells from top to bottom. The exercises are at the end.'});
+}});
+
+// one sample handwritten digit, drawn on the digits notebook slide
+const DIGIT3='000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008fffd00000000000000000000008fffffe600000000000000000004fffffff60000000000000000000cffe9dfff60000000000000000009a71018ffd0000000000000000000000002ffe0000000000000000000000001dfe0000000000000000000000002efe0000000000000000000036645cfc30000000000000000000cffffff400000000000000000002efffffa000000000000000000000dffffb40000000000000000000019fffe200000000000000000000004bffd0000000000000000006100001dff600000000000000007fd21139eff80000000000000004ffffffffffc00000000000000006fffffffffe200000000000000003ffffffffd60000000000000000007a8ed77200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000';
+
+// ===== 12. Bootstrap =====
+const BOOT=['Luke','Lando','Leia','Ackbar','Luke','Chewy','C3P0','Ackbar'];
+slide({name:'Bootstrap',steps:4,build(el){
+  title(el,'Random forests, idea 1','Each tree gets its own sample, drawn with replacement');
+  mk('div','abs',el,null,'left:100px;top:250px;width:400px;height:400px;border-radius:50%;border:2px solid var(--rule);background:var(--paper-2)');
+  mk('div','abs mono muted',el,'the original eight','left:215px;top:670px;font-size:18px');
+  this.src=STU.map((s,i)=>{const c=chip(el,s);const a=i/8*Math.PI*2-Math.PI/2;const x=300+Math.cos(a)*130,y=450+Math.sin(a)*130;put(c,x,y);c._x=x;c._y=y;return c});
+  for(let i=0;i<8;i++){mk('div','abs',el,null,`left:${640+i*112-38}px;top:412px;width:76px;height:76px;border-radius:50%;border:2px dashed var(--rule)`);
+    mk('div','abs mono muted',el,'draw '+(i+1),`left:${640+i*112-30}px;top:500px;font-size:16px`)}
+  this.clones=BOOT.map(n=>{const c=chip(el,BY[n]);c.style.opacity=0;return c});
+  this.badges=['Luke','Ackbar'].map(n=>{const b=mk('div','abs mono',el,'×2','font-size:20px;font-weight:600;color:var(--ink);transition:opacity .4s;opacity:0');b._n=n;return b});
+  const F=rv(mk('div','panel',el,`<h3>How many sit out?</h3><div style="font-size:24px;line-height:1.55">Chance a student is missed on all 8 draws:<br><span class="mono" style="font-size:30px">(7/8)<sup>8</sup> ≈ 34%</span><br><span class="muted">With thousands of rows this settles near 37%.</span></div>`,'left:640px;top:560px;width:860px'),3);
+  cap(el,0,'Reach into the bag eight times. Put each student back before the next draw.',1,'left:104px;top:170px');
+  cap(el,1,'Some students get picked twice. Some are never picked.',2,'left:104px;top:170px');
+  cap(el,2,'Luke and Ackbar count twice. <b>Han and R2D2 sit this tree out.</b>',3,'left:104px;top:170px');
+  cap(el,3,'Every tree sees a slightly different class, so every tree comes out a little different.',null,'left:104px;top:170px');
+},go(st,anim){
+  const place=(i,show)=>{const c=this.clones[i];if(!show){put(c,this.src[STU.findIndex(s=>s.n===BOOT[i])]._x,this.src[STU.findIndex(s=>s.n===BOOT[i])]._y);c.style.opacity=0;return}
+    c.style.opacity=1;put(c,640+i*112,450)};
+  if(st===0)BOOT.forEach((_,i)=>place(i,false));
+  else if(st===1&&anim){BOOT.forEach((_,i)=>place(i,false));BOOT.forEach((n,i)=>{
+    later(()=>{const s=this.src[STU.findIndex(x=>x.n===n)];s.classList.add('ring');const c=this.clones[i];c.style.transition='none';put(c,s._x,s._y);c.style.opacity=1;void c.offsetWidth;c.style.transition='';put(c,640+i*112,450)},250+i*520);
+    later(()=>this.src[STU.findIndex(x=>x.n===n)].classList.remove('ring'),250+i*520+450)})}
+  else BOOT.forEach((_,i)=>place(i,true));
+  const dup=st>=2;
+  this.badges.forEach(b=>{const idx=BOOT.lastIndexOf(b._n);at(b,640+idx*112+26,380);b.style.opacity=dup?1:0});
+  this.src.forEach((c,i)=>c.classList.toggle('dim',dup&&!BOOT.includes(STU[i].n)));
+  if(st!==1)this.src.forEach(c=>c.classList.remove('ring'));
+}});
+
+// ===== 13. Random questions =====
+slide({name:'Random questions',steps:4,build(el){
+  title(el,'Random forests, idea 2','At every split, a tree may only use some of the questions');
+  this.cards=[['att','Perfect attendance?'],['hours','Hours?'],['code','Prior coding?']].map(([k,l],i)=>{const c=mk('div','qcard',el,`<div>${l}<span class="sc"></span></div>`);at(c,420+i*380,470);c._k=k;return c});
+  this.who=mk('div','abs mono',el,'','left:260px;top:300px;font-size:22px;color:var(--ink-2)');
+  cap(el,0,'If one question is always best, every tree starts with it and the trees all look alike.',1);
+  cap(el,1,'<b>Tree 1</b>, first split: attendance is dealt out. Prior coding still wins, at 0.300.',2);
+  cap(el,2,'<b>Tree 3</b>, first split: prior coding is dealt out. On its sample, hours ≤ 1.5 wins instead.',3);
+  cap(el,3,'Different rows plus different questions give trees that make <b>different mistakes</b>. Averaging cancels some of them.');
+},go(st){
+  const deals={0:null,1:{hide:'att',win:'code',sc:{hours:'best 0.375',code:'0.300'}},2:{hide:'code',win:'hours',sc:{att:'0.333',hours:'≤ 1.5: 0.300'}}};
+  const d=deals[Math.min(st,2)]||(st===3?deals[2]:null);
+  this.cards.forEach(c=>{const hid=d&&c._k===d.hide;c.classList.toggle('hidden',!!hid);c.classList.toggle('win',!!d&&c._k===d.win);
+    c.querySelector('.sc').textContent=d?(hid?'not dealt':(d.sc[c._k]||'')):'';
+    c.style.transform=`translate(-50%,-50%) ${hid?'rotateY(0deg) scale(.92)':''}`});
+  this.who.textContent=st===1?'tree 1 · its own bootstrap sample':st>=2?'tree 3 · its own bootstrap sample':'';
+}});
+
+// ===== 14. Three trees vote =====
+const TREES=[
+  {name:'Tree 1',sample:BOOT,root:'Prior coding?',l:['A','3/3 got A',1],inner:'Hours ≤ 4?',rl:['Not A','0/3 got A',0],rr:['A','2/2 got A',1],path:['r-R','R-RL'],leaf:'RL',p:'0',pv:0},
+  {name:'Tree 2',sample:['Lando','Chewy','Chewy','C3P0','Leia','R2D2','Chewy','Han'],root:'Hours ≤ 1.5?',l:['Not A','0/1 got A',0],inner:'Attendance?',rl:['A','2/3 got A',2/3],rr:['A','4/4 got A',1],path:['r-R','R-RL'],leaf:'RL',p:'2/3',pv:2/3},
+  {name:'Tree 3',sample:['R2D2','C3P0','Ackbar','Leia','Chewy','Luke','Ackbar','Ackbar'],root:'Hours ≤ 1.5?',l:['A','3/3 got A',1],inner:'Hours ≤ 4?',rl:['Not A','1/3 got A',1/3],rr:['A','2/2 got A',1],path:['r-R','R-RL'],leaf:'RL',p:'1/3',pv:1/3}];
+slide({name:'Forest vote',steps:4,build(el){
+  title(el,'The forest','Three trees, three opinions, one average');
+  this.T=TREES.map((t,i)=>{const cx=290+i*510;
+    mk('div','abs mono',el,t.name,`left:${cx-200}px;top:170px;font-size:20px;font-weight:500`);
+    t.sample.forEach((n,k)=>put(chip(el,BY[n],'sm'),cx-140+k*40,225));
+    const lc=v=>v>=.5?'la':'ln';
+    const T=tree(el,[{id:'r',x:cx,y:330,html:t.root},{id:'L',x:cx-140,y:470,html:`${t.l[0]}<small>${t.l[1]}</small>`,cls:'leaf '+lc(t.l[2])},
+      {id:'R',x:cx+110,y:470,html:t.inner},{id:'RL',x:cx+10,y:620,html:`${t.rl[0]}<small>${t.rl[1]}</small>`,cls:'leaf '+lc(t.rl[2])},
+      {id:'RR',x:cx+200,y:620,html:`${t.rr[0]}<small>${t.rr[1]}</small>`,cls:'leaf '+lc(t.rr[2])}],
+      [['r','L','Yes'],['r','R','No'],['R','RL','Yes'],['R','RR','No']]);
+    T.out=rv(mk('div','abs mono',el,`p(A) = ${t.p}`,`left:${cx-80}px;top:690px;width:180px;text-align:center;font-size:26px;font-weight:600;color:var(--${t.pv>=.5?'a':'n'})`),2);
+    return T});
+  this.rey=TREES.map((_,i)=>{const c=chip(el,REY,'');c.style.opacity=0;return c});
+  this.avg=rv(mk('div','abs',el,`<span class="mono" style="font-size:30px">(0 + 2/3 + 1/3) / 3 = 1/3 ≈ 33%</span> &nbsp;<span style="font-size:28px">→ forest predicts <b class="tn">no A</b></span>`,'left:104px;top:752px;width:1400px'),3);
+  cap(el,0,'Each tree was grown on its own bootstrap sample (the small dots) with randomly dealt questions.',1,'left:104px;top:800px');
+  cap(el,1,'Send Rey down all three.',2,'left:104px;top:800px');
+  cap(el,2,'Each leaf reports the share of A students it saw. The trees disagree.',3,'left:104px;top:800px');
+  cap(el,3,'Average the leaf shares. One tree in three leans A; a simple vote gives the same answer here.',null,'left:104px;top:818px;font-size:24px;color:var(--ink-2)');
+},go(st,anim){
+  this.T.forEach((T,i)=>{Object.values(T.E).forEach(e=>e.p.classList.remove('hot'));Object.values(T.N).forEach(n=>n.classList.remove('hot'))});
+  this.rey.forEach((c,i)=>{const cx=290+i*510;
+    if(st<1){c.style.opacity=0;put(c,cx-110,330);return}
+    c.style.opacity=1;
+    const T=this.T[i];
+    if(st===1){put(c,cx-110,300,.8)}
+    else{put(c,cx-104,620,.8);T.E['r-R'].p.classList.add('hot');T.E['R-RL'].p.classList.add('hot');T.N.RL.classList.add('hot')}
+  });
+}});
+
+// ===== 15. Why a crowd helps =====
+slide({name:'Why averaging helps',steps:3,build(el){
+  title(el,'Why it works','Many so-so trees can beat one good-looking tree');
+  const X=n=>160+(n-1)/50*820,Y=a=>700-(a-0.5)/0.5*420;this.X=X;this.Y=Y;
+  const s=svgEl(el);this.s=s;
+  sv('line',{x1:160,y1:700,x2:990,y2:700,stroke:'var(--ink-2)','stroke-width':2},s);sv('line',{x1:160,y1:700,x2:160,y2:270,stroke:'var(--ink-2)','stroke-width':2},s);
+  [0.5,0.6,0.7,0.8,0.9,1].forEach(a=>{sv('line',{x1:154,y1:Y(a),x2:990,y2:Y(a),stroke:'var(--rule)'},s);const t=sv('text',{x:144,y:Y(a)+7,'text-anchor':'end'},s);t.textContent=Math.round(a*100)+'%'});
+  [1,11,21,31,41,51].forEach(n=>{const t=sv('text',{x:X(n),y:732,'text-anchor':'middle'},s);t.textContent=n});
+  const tx=sv('text',{x:575,y:770,'text-anchor':'middle'},s);tx.textContent='number of trees voting';
+  // overfitting: the gap between a tree's score on students it learned from (100%) and on new ones
+  const fade='opacity:0;transition:opacity .5s';
+  this.ovBr=sv('line',{x1:160,x2:160,y1:Y(1),y2:Y(1),stroke:'var(--ink)','stroke-width':7,style:fade},s);
+  this.ov=[sv('line',{x1:160,y1:Y(1),x2:990,y2:Y(1),stroke:'var(--ink)','stroke-width':3,'stroke-dasharray':'8 7',style:fade},s),this.ovBr,
+    mk('div','abs',el,'one deep tree, on the students it learned from: <b>100%</b>','left:180px;top:244px;font-size:21px;white-space:nowrap;'+fade)];
+  this.ovTxt=mk('div','abs',el,'<b>overfitting</b>','left:172px;font-size:22px;padding:0 8px;background:var(--paper);'+fade);this.ov.push(this.ovTxt);
+  this.path=sv('path',{fill:'none',stroke:'var(--a)','stroke-width':4,style:'transition:stroke-dashoffset 1.6s ease'},s);
+  this.dot=sv('circle',{r:9,fill:'var(--ink)'},s);
+  this.lab=mk('div','abs mono',el,'','left:520px;top:648px;width:470px;text-align:right;font-size:20px;white-space:nowrap');
+  const ctl=mk('div','ctl',el,'<label for="pk">Each tree is right</label><input id="pk" type="range" min="55" max="80" step="1" value="65"><span class="mono" id="pkv">65%</span>','left:160px;top:790px');
+  this.inp=ctl.querySelector('input');this.pv=ctl.querySelector('#pkv');
+  ['click','pointerdown'].forEach(ev=>ctl.addEventListener(ev,e=>e.stopPropagation()));
+  this.inp.addEventListener('input',()=>{this.draw(+this.inp.value/100,false)});
+  this.panel=rv(mk('div','panel',el,`<h3>The catch</h3><div style="font-size:24px;line-height:1.5">This curve assumes the trees make <b>independent</b> mistakes. Trees grown from the same data make related mistakes, so real gains are smaller.<br><br>Bootstrap rows and dealt questions exist to make the mistakes less alike.</div>`,'left:1060px;top:250px;width:470px'),2);
+  this.res=rv(mk('div','panel',el,`<h3>What the vote fixes</h3><div style="font-size:23px;line-height:1.5">Each tree memorizes different quirks of the students it learned from, so the vote cancels much of the <b>overfitting</b>.</div>`,'left:1060px;top:600px;width:470px'),2);
+},maj(n,p){let s=0,c=1;for(let k=0;k<=n;k++){if(k>0)c=c*(n-k+1)/k;if(k>n/2)s+=c*p**k*(1-p)**(n-k)}return s},
+draw(p,hideLine){this.pv.textContent=Math.round(p*100)+'%';let d='';for(let n=1;n<=51;n+=2)d+=(n>1?'L':'M')+this.X(n)+','+this.Y(this.maj(n,p));
+  this.path.setAttribute('d',d);const L=this.path.getTotalLength?this.path.getTotalLength():2000;this.path.style.strokeDasharray=L;this.path.style.strokeDashoffset=hideLine?L:0;
+  this.dot.setAttribute('cx',this.X(1));this.dot.setAttribute('cy',this.Y(p));
+  this.ovBr.setAttribute('y2',this.Y(p));this.ovTxt.style.top=(this.Y(1)+(this.Y(p)-this.Y(1))*.28-16)+'px';
+  this.lab.innerHTML=hideLine?`one tree: ${Math.round(p*100)}% right`:`one tree: ${Math.round(p*100)}% · majority of 51: ${(this.maj(51,p)*100).toFixed(1)}%`},
+go(st){this.ov.forEach(e=>e.style.opacity=st>=2?1:0);this.draw(+this.inp.value/100,true);if(st>=1)requestAnimationFrame(()=>requestAnimationFrame(()=>this.draw(+this.inp.value/100,false)))}});
+
+// ===== 16. Code =====
+slide({name:'In scikit-learn',steps:6,build(el){
+  title(el,'In Python','Every setting is something we just did by hand');
+  const lines=['from sklearn.ensemble import RandomForestClassifier','','rf = RandomForestClassifier(','    n_estimators=3,','    bootstrap=True,','    max_features=2,','    max_depth=2,',')','rf.fit(X, y)','rf.predict_proba(X_rey)'];
+  this.code=mk('div','code',el,lines.map(l=>`<div class="ln">${l||' '}</div>`).join(''),'left:104px;top:200px');
+  this.lns=[...this.code.querySelectorAll('.ln')];
+  this.notes=[[3,'three trees'],[4,'each tree draws its own sample, with replacement'],[5,'deal 2 of the 3 questions at each split'],[6,'at most two questions deep'],[9,'average the leaf shares: p(not A), p(A)']].map(([li,t],i)=>{const n=mk('div','note',el,'← '+t,`left:820px;top:${200+li*45.5+4}px;opacity:0;color:var(--a)`);n._li=li;return n});
+  cap(el,0,'The whole forest is a few lines.',1);
+  cap(el,1,'<code>n_estimators</code>: how many trees.',2);
+  cap(el,2,'<code>bootstrap=True</code>: the bag draws.',3);
+  cap(el,3,'<code>max_features</code>: how many questions each split may consider.',4);
+  cap(el,4,'<code>max_depth</code>: how many questions deep a tree can grow.',5);
+  cap(el,5,'<code>predict_proba</code> returns the forest\'s averaged shares, in the order of <code>rf.classes_</code>.');
+},go(st){
+  const map={1:3,2:4,3:5,4:6,5:9};this.code.classList.toggle('focus',st>=1);
+  this.lns.forEach((l,i)=>l.classList.toggle('on',map[st]===i));
+  this.notes.forEach(n=>n.style.opacity=map[st]===n._li?1:0);
+}});
+
+// ===== Notebook 2 =====
+slide({name:'Notebook: digits',steps:1,build(el){
+  const P=notebook(el,{n:2,title:'The same forest on 42,000 handwritten digits',url:NB.digits,time:'runs in a few minutes',
+    items:['See a digit as one row of 784 numbers.','Watch one tree overfit as it grows deeper, then a forest do better.','Measure what more trees and more training digits buy.'],
+    panel:'One row of the table',
+    cap:'Each pixel is a column, so the forest asks questions like "is pixel 406 brighter than 127?"'});
+  P.style.height='350px';
+  const s=svgEl(el),px=DIGIT3,x0=990,y0=290,c=9;
+  sv('rect',{x:x0-1,y:y0-1,width:28*c+2,height:28*c+2,fill:'none',stroke:'var(--rule)'},s);
+  for(let i=0;i<784;i++){const v=parseInt(px[i],16);if(v)sv('rect',{x:x0+(i%28)*c,y:y0+Math.floor(i/28)*c,width:c,height:c,fill:'var(--ink)',opacity:(v/15).toFixed(2)},s)}
+  mk('div','abs',el,'<span class="mono">label</span> = 3<br><span class="mono">pixel0</span> … <span class="mono">pixel783</span><br><span class="muted">28 × 28 = 784 columns,<br>each from 0 to 255</span>','left:1264px;top:296px;width:220px;font-size:19px;line-height:1.7;white-space:nowrap');
+}});
+
+// ===== 18. Next word =====
+slide({name:'Next word',steps:5,build(el){
+  title(el,'Text as a table','Next-word prediction is the same kind of question');
+  const words=['lily','went','to','the','park','.','she'];
+  const row=mk('div','abs',el,null,'left:104px;top:200px;display:flex;gap:18px;font:400 52px var(--f-display)');
+  this.w=words.map(w=>mk('span','',row,w,'padding:6px 12px;border-radius:8px;transition:background-color .35s, color .35s'));
+  this.box=mk('div','abs mv',el,null,'top:192px;height:84px;border:3px solid var(--ink);border-radius:12px;opacity:0;left:0;width:0');
+  const t=mk('table','data',el);at(t,104,320);t.style.fontSize='26px';
+  t.innerHTML='<tr><th>t−4</th><th>t−3</th><th>t−2</th><th>t−1</th><th>next (label)</th></tr>'+
+    [[0,1,2,3,4],[1,2,3,4,5],[2,3,4,5,6]].map((r,i)=>`<tr class="rv" data-in="${i+1}">${r.slice(0,4).map(j=>`<td>${words[j]}</td>`).join('')}<td class="ta">${words[r[4]]}</td></tr>`).join('');
+  const R=rv(mk('div','panel',el,`<h3>The story notebook: 4,000 TinyStories, 20 trees</h3>
+    <div style="display:grid;grid-template-columns:470px 1fr;gap:36px;font-size:23px;line-height:1.5">
+      <div>After <i>lily went to the</i>: <span class="mono" style="white-space:nowrap">park 51% · store 18%</span><br><span class="muted" style="font-size:20px">Top guess right on held-out stories: <span class="mono">29.9%</span></span></div>
+      <div style="font-family:var(--f-display);font-size:25px">“Once upon a time, there was a little girl named lily. She loved to play with her toys. She was so happy and she was very happy. She said, I want to play. She saw a big, red ball…”</div></div>`,'left:104px;top:540px;width:1400px'),4);
+  cap(el,0,'Slide a four-word window across a story.',1,'left:1000px;top:340px;width:520px');
+  cap(el,1,'Four words in, the next word is the label. One row of training data.',2,'left:1000px;top:340px;width:520px');
+  cap(el,2,'Slide one word and get another row. Punctuation counts as a word.',3,'left:1000px;top:340px;width:520px');
+  cap(el,3,'Generating text is predicting a word, appending it, and sliding again.',4,'left:1000px;top:340px;width:520px');
+  cap(el,4,'Fluent sentences, no plot: four words of memory. Modern language models replace the trees, not the idea of predicting the next token.',null,'left:104px;top:800px;font-size:24px');
+},go(st){
+  const k=Math.min(st,3);
+  this.w.forEach((w,i)=>{const tgt=k>=1&&i===k+3;w.style.background=tgt?'var(--a-soft)':'transparent';w.style.color=tgt?'var(--a)':'var(--ink)'});
+  if(k<1){this.box.style.opacity=0;return}
+  const a=this.w[k-1],b=this.w[k+2];const L=104+a.offsetLeft-6,R=104+b.offsetLeft+b.offsetWidth+6;
+  this.box.style.opacity=1;this.box.style.left=L+'px';this.box.style.width=(R-L)+'px';
+}});
+
+
+// ===== Notebook 3 =====
+slide({name:'Notebook: story forest',steps:1,build(el){
+  notebook(el,{n:3,title:'Build the story forest yourself',url:NB.story,time:'runs in a few minutes',
+    items:['Turn stories into rows: four tokens in, the next one as the label.','See the one-hot columns the forest actually trains on.','Write a story, then turn up the temperature and watch it fall apart.'],
+    panel:'One call writes a story',code:['write_story(','    "once upon a time",','    n_new_tokens=70,','    temperature=0.5,',')'],
+    cap:'At temperature 0 the story is the same every run. Above 0, every run draws a new one.'});
+}});
+
+// ---------- engine ----------
+let cur=0,st=0,last={i:-1,s:-1};
+const dots=document.getElementById('dots'),count=document.getElementById('count');
+function show(){
+  clearLater();
+  const anim=(last.i===cur&&st===last.s+1);
+  slides.forEach((s,j)=>s.el.classList.toggle('on',j===cur));
+  const S=slides[cur];
+  S.el.querySelectorAll('[data-in]').forEach(e=>{const i=+e.dataset.in,o=e.dataset.out;e.classList.toggle('shown',st>=i&&(o===undefined||st<+o))});
+  if(S.go)S.go.call(S,st,anim);
+  count.textContent=`${cur+1} / ${slides.length}`;
+  dots.innerHTML='';for(let k=0;k<S.steps;k++)mk('i',k<=st?'on':'',dots);
+  last={i:cur,s:st};
+  try{history.replaceState(null,'','#slide-'+(cur+1))}catch(e){}
+}
+function next(){if(st<slides[cur].steps-1)st++;else if(cur<slides.length-1){cur++;st=0}show()}
+function prev(){if(st>0)st--;else if(cur>0){cur--;st=slides[cur].steps-1}show()}
+document.getElementById('next').onclick=e=>{e.stopPropagation();next()};
+document.getElementById('prev').onclick=e=>{e.stopPropagation();prev()};
+STAGE.addEventListener('click',e=>{const r=STAGE.getBoundingClientRect();(e.clientX-r.left<r.width*0.25)?prev():next()});
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT'||e.target.tagName==='A')return;
+  if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();next()}
+  else if(['ArrowLeft','ArrowUp','PageUp','Backspace'].includes(e.key)){e.preventDefault();prev()}
+  else if(e.key==='Home'){cur=0;st=0;show()}else if(e.key==='End'){cur=slides.length-1;st=0;show()}
+  else if(e.key==='f'){const d=document.documentElement;(document.fullscreenElement?document.exitFullscreen():d.requestFullscreen?.())?.catch?.(()=>{})}});
+function fit(){const v=document.getElementById('view');const w=v.clientWidth,h=v.clientHeight-52;const s=Math.min(w/1600,h/900);STAGE.style.transform=`translate(-50%,-50%) scale(${s})`}
+addEventListener('resize',fit);fit();
+function fromHash(){const m=/^#slide-(\d+)$/.exec(location.hash);if(m){const n=Math.min(slides.length,Math.max(1,+m[1]));if(n-1!==cur){cur=n-1;st=0;last={i:-1,s:-1};show()}}}
+addEventListener('hashchange',fromHash);
+const m=/^#slide-(\d+)$/.exec(location.hash);if(m)cur=Math.min(slides.length,Math.max(1,+m[1]))-1;
+show();
+})();
+</script>
+
+</html>
