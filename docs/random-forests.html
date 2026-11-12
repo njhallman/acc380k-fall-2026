@@ -77,6 +77,12 @@ table.data th{font:600 15px var(--f-mono);letter-spacing:.06em;text-transform:up
 table.data td{padding:9px 16px;border-bottom:1px solid var(--rule);background:var(--paper)}
 table.data td.c{text-align:center}
 table.data tr.rey td{background:var(--hi)}
+table.data.mini{font-size:18px}
+table.data.mini th{font-size:12px;padding:5px 10px}
+table.data.mini td{padding:5px 10px;transition:background-color .4s}
+table.data.mini .dimc{color:var(--ink-2)}
+table.data.mini tr.inl td{background:var(--paper-2)}
+table.data.mini th.hic,table.data.mini td.hic{background:var(--hi);font-weight:600}
 
 /* panels */
 .panel{position:absolute;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:24px 28px;box-sizing:border-box}
@@ -402,27 +408,33 @@ slide({name:'Weighted Gini',steps:5,build(el){
 // ===== 7. Thresholds for hours =====
 slide({name:'Thresholds',steps:6,build(el){
   title(el,'Numeric questions','For hours, slide a cutoff and score every spot');
-  const X=h=>200+(h-0.5)*200;this.X=X;
-  this.tint=mk('div','abs mv',el,null,`left:200px;top:330px;height:250px;width:0;background:var(--paper-2);border-radius:8px 0 0 8px`);
-  mk('div','abs',el,null,'left:200px;top:580px;width:1200px;height:2px;background:var(--ink)');
+  // the same eight rows as the data slide, with the column this question uses highlighted
+  mk('div','abs mono muted',el,'the same eight students','left:104px;top:270px;font-size:17px');
+  const tb=mk('table','data mini',el);at(tb,104,300);
+  tb.innerHTML='<tr><th>Student</th><th>Attend.</th><th class="hic">Hours</th><th>Coding</th><th>Got an A</th></tr>'+
+    STU.map(s=>`<tr><td>${s.n}</td><td class="c dimc">${s.att?'Yes':'No'}</td><td class="c mono hic">${s.h}</td><td class="c dimc">${s.c?'Yes':'No'}</td><td class="c ${s.a?'ta':'tn'}">${s.a?'Yes':'No'}</td></tr>`).join('');
+  this.trs=[...tb.querySelectorAll('tr')].slice(1);
+  const X=h=>600+(h-0.5)*150;this.X=X;
+  this.tint=mk('div','abs mv',el,null,`left:600px;top:330px;height:250px;width:0;background:var(--paper-2);border-radius:8px 0 0 8px`);
+  mk('div','abs',el,null,'left:600px;top:580px;width:900px;height:2px;background:var(--ink)');
   for(let h=1;h<=6;h++){mk('div','abs',el,null,`left:${X(h)-1}px;top:574px;width:2px;height:14px;background:var(--ink)`);mk('div','abs mono',el,h,`left:${X(h)-6}px;top:592px;font-size:20px`)}
-  mk('div','abs muted',el,'hours per week','left:1260px;top:592px;font-size:20px');
+  mk('div','abs muted',el,'hours per week','left:600px;top:622px;width:900px;text-align:center;font-size:18px');
   const seen={};STU.forEach(s=>{const k=seen[s.h]=(seen[s.h]||0)+1;put(chip(el,s),X(s.h),540-(k-1)*80)});
   this.line=mk('div','abs mv',el,null,'left:0;top:320px;width:4px;height:270px;margin-left:-2px;background:var(--a);opacity:0;cursor:ew-resize');
   this.tag=mk('div','abs mv mono',el,'','left:0;top:282px;transform:translateX(-50%);font-size:22px;font-weight:600;color:var(--a);opacity:0;white-space:nowrap');
-  this.read=mk('div','abs mono',el,'','left:200px;top:640px;width:1200px;text-align:center;font-size:24px;opacity:0;transition:opacity .4s');
+  this.read=mk('div','abs mono',el,'','left:104px;top:660px;width:1400px;text-align:center;font-size:23px;opacity:0;transition:opacity .4s');
   this.cands=[1.5,2.5,4,5.5];
   this.bars=this.cands.map(t=>{const l=this.lr(t);const v=l.w;const b=mk('div','bar',el,null,`left:${X(t)-30}px;width:60px;top:830px;height:0;background:var(--mix)`);
     const lb=mk('div','abs mono',el,f3(v),`left:${X(t)-40}px;width:80px;text-align:center;top:${830-v*240-30}px;font-size:20px;opacity:0;transition:opacity .4s`);return {b,lb,v}});
-  mk('div','abs mono muted',el,'weighted Gini at each cutoff','left:200px;top:846px;font-size:18px');
-  cap(el,0,'Sort by hours. A cutoff can only sit between two different values, so there are four to try.',1,'left:104px;top:170px');
+  mk('div','abs mono muted',el,'weighted Gini at each cutoff','left:600px;top:846px;font-size:18px');
+  cap(el,0,'Hours is a number, so the question is a cutoff. Line the students up by hours: a cutoff can only sit between two different values, so there are four to try.',1,'left:104px;top:170px');
   cap(el,1,'Cutoff 1.5: one A and one not on the left. Barely better than no split.',2,'left:104px;top:170px');
   cap(el,2,'Cutoff 2.5: still mixed on both sides.',3,'left:104px;top:170px');
   cap(el,3,'Cutoff 4: the right side is pure. The score drops to 0.375.',4,'left:104px;top:170px');
   cap(el,4,'Cutoff 5.5: only Chewy on the right. Worse again.',5,'left:104px;top:170px');
   cap(el,5,'<b>Hours ≤ 4</b> is the best hours question. Drag the orange line to check any cutoff.',null,'left:104px;top:170px');
   // dragging
-  const drag=e=>{const r=STAGE.getBoundingClientRect();const sc=r.width/1600;const x=(e.clientX-r.left)/sc;const h=(x-200)/200+0.5;
+  const drag=e=>{const r=STAGE.getBoundingClientRect();const sc=r.width/1600;const x=(e.clientX-r.left)/sc;const h=(x-600)/150+0.5;
     let best=this.cands[0];this.cands.forEach(t=>{if(Math.abs(t-h)<Math.abs(best-h))best=t});this.setT(best,true)};
   this.line.addEventListener('pointerdown',e=>{e.stopPropagation();this.line.setPointerCapture(e.pointerId);this.dragging=true});
   this.line.addEventListener('pointermove',e=>{if(this.dragging)drag(e)});
@@ -432,7 +444,7 @@ slide({name:'Thresholds',steps:6,build(el){
   return {L,R,la,ra,gl:gini(la,L.length),gr:gini(ra,R.length),w:L.length/8*gini(la,L.length)+R.length/8*gini(ra,R.length)}},
 setT(t,show){const X=this.X(t);const l=this.lr(t);
   this.line.style.left=X+'px';this.line.style.opacity=1;this.tag.style.left=X+'px';this.tag.style.opacity=1;this.tag.textContent='≤ '+t;
-  this.tint.style.width=(X-200)+'px';
+  this.tint.style.width=(X-600)+'px';this.trs.forEach((r,i)=>r.classList.toggle('inl',STU[i].h<=t));
   this.read.style.opacity=1;
   this.read.innerHTML=`left <span class="ta">${l.la} A</span>·<span class="tn">${l.L.length-l.la} not</span> (Gini ${f3(l.gl)}) &nbsp;&nbsp;|&nbsp;&nbsp; right <span class="ta">${l.ra} A</span>·<span class="tn">${l.R.length-l.ra} not</span> (Gini ${f3(l.gr)}) &nbsp;&nbsp;→&nbsp;&nbsp; <b>weighted ${f3(l.w)}</b>`;
   if(show){const i=this.cands.indexOf(t);this.reveal(Math.max(this.shown||0,i+1))}},
@@ -440,7 +452,7 @@ reveal(n){this.shown=n;this.bars.forEach((b,i)=>{const on=i<n;b.b.style.top=(830
   b.b.style.background=(this.best&&i===2)?'var(--a)':'var(--mix)'})},
 go(st){
   this.best=st>=5;
-  if(st===0){this.line.style.opacity=0;this.tag.style.opacity=0;this.tint.style.width='0px';this.read.style.opacity=0;this.reveal(0);return}
+  if(st===0){this.trs.forEach(r=>r.classList.remove('inl'));this.line.style.opacity=0;this.tag.style.opacity=0;this.tint.style.width='0px';this.read.style.opacity=0;this.reveal(0);return}
   const t=this.cands[Math.min(st,4)-1]??4;this.setT(st>=5?4:t,false);this.reveal(Math.min(st,4));
 }});
 
