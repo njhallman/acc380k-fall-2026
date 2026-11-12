@@ -689,16 +689,16 @@ slide({name:'Why averaging helps',steps:3,build(el){
   const ctl=mk('div','ctl',el,'<label for="pk">Each tree is right</label><input id="pk" type="range" min="55" max="80" step="1" value="65"><span class="mono" id="pkv">65%</span>','left:160px;top:790px');
   this.inp=ctl.querySelector('input');this.pv=ctl.querySelector('#pkv');
   ['click','pointerdown'].forEach(ev=>ctl.addEventListener(ev,e=>e.stopPropagation()));
-  this.inp.addEventListener('input',()=>{this.draw(+this.inp.value/100,false)});
+  this.inp.addEventListener('input',()=>{this.draw(+this.inp.value/100,false,true)});
   this.panel=rv(mk('div','panel',el,`<h3>The catch</h3><div style="font-size:24px;line-height:1.5">This curve assumes the trees make <b>independent</b> mistakes. Trees grown from the same data make related mistakes, so real gains are smaller.<br><br>Bootstrap rows and dealt questions exist to make the mistakes less alike.</div>`,'left:1060px;top:250px;width:470px'),2);
   this.res=rv(mk('div','panel',el,`<h3>What the vote fixes</h3><div style="font-size:23px;line-height:1.5">Each tree memorizes different quirks of the students it learned from, so the vote cancels much of the <b>overfitting</b>.</div>`,'left:1060px;top:600px;width:470px'),2);
 },maj(n,p){let s=0,c=1;for(let k=0;k<=n;k++){if(k>0)c=c*(n-k+1)/k;if(k>n/2)s+=c*p**k*(1-p)**(n-k)}return s},
-draw(p,hideLine){this.pv.textContent=Math.round(p*100)+'%';let d='';for(let n=1;n<=51;n+=2)d+=(n>1?'L':'M')+this.X(n)+','+this.Y(this.maj(n,p));
-  this.path.setAttribute('d',d);const L=this.path.getTotalLength?this.path.getTotalLength():2000;this.path.style.strokeDasharray=L;this.path.style.strokeDashoffset=hideLine?L:0;
+draw(p,hideLine,instant){this.pv.textContent=Math.round(p*100)+'%';let d='';for(let n=1;n<=51;n+=2)d+=(n>1?'L':'M')+this.X(n)+','+this.Y(this.maj(n,p));
+  this.path.setAttribute('d',d);const L=this.path.getTotalLength?this.path.getTotalLength():2000;this.path.style.transition=(hideLine||instant)?'none':'stroke-dashoffset 1.6s ease';this.path.style.strokeDasharray=L;this.path.style.strokeDashoffset=hideLine?L:0;
   this.dot.setAttribute('cx',this.X(1));this.dot.setAttribute('cy',this.Y(p));
   this.ovBr.setAttribute('y2',this.Y(p));this.ovTxt.style.top=(this.Y(1)+(this.Y(p)-this.Y(1))*.28-16)+'px';
   this.lab.innerHTML=hideLine?`one tree: ${Math.round(p*100)}% right`:`one tree: ${Math.round(p*100)}% · majority of 51: ${(this.maj(51,p)*100).toFixed(1)}%`},
-go(st){this.ov.forEach(e=>e.style.opacity=st>=2?1:0);this.draw(+this.inp.value/100,true);if(st>=1)requestAnimationFrame(()=>requestAnimationFrame(()=>this.draw(+this.inp.value/100,false)))}});
+go(st,anim){this.ov.forEach(e=>e.style.opacity=st>=2?1:0);const p=+this.inp.value/100;if(st===0)this.draw(p,true);else if(anim&&st===1){this.draw(p,true);requestAnimationFrame(()=>requestAnimationFrame(()=>this.draw(p,false)))}else this.draw(p,false,true)}});
 
 // ===== 16. Code =====
 slide({name:'In scikit-learn',steps:6,build(el){
